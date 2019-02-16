@@ -47,6 +47,26 @@ use yii\widgets\Breadcrumbs;
        color:#fff;
        margin-left:0px;
     }
+
+    .topoptv{
+        display: flex;
+    justify-content: space-around;
+    margin-bottom:0px;
+    box-sizing: border-box;
+    font-size: 12px;
+    line-height: 1.42857143;
+    }
+
+    .topleftv{
+        width:60%;
+        height:50px;
+        text-align:left;
+    }
+    .toprightv{
+        width:40%;
+        height:50px;
+        text-align:right;
+    }
     </style>
 </head>
 <body>
