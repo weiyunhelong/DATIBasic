@@ -108,7 +108,7 @@ function deleteopt(id){
 //搜索操作
 function Searchopt(){
     var name=$("#txt_search").val();
-    window.navigate("/subject/test?name="+encodeURIComponent(name));
+    window.document.location.href="/subject/test?name="+encodeURIComponent(name) ;
 }
 </script>
 

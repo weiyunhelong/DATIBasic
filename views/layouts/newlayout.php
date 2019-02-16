@@ -61,6 +61,17 @@ use yii\widgets\Breadcrumbs;
         width:60%;
         height:50px;
         text-align:left;
+        display:flex;
+    }
+
+    .searchbtn{
+       color: #fff;
+       background-color: #337ab7;
+       height: 34px;
+       margin-left: 10px;
+       border: 0;
+       padding: 10px 20px;
+       border-radius: 5px;
     }
     .toprightv{
         width:40%;
@@ -107,7 +118,7 @@ use yii\widgets\Breadcrumbs;
      <div class="col-sm-3 col-md-2 sidebar" id="menuv">
         <ul class="nav nav-sidebar">
           <li id="onemenu"><a href="/manage/index"       class='menu'>微信用户</a></li>
-          <li id="twomenu"><a href="/subject/index"      class='menu'>真实科目管理</a></li>
+          <li id="twomenu"><a href="/subject/test?name="      class='menu'>真实科目管理</a></li>
           <li id="threemenu"><a href="/category/index"   class='menu'>学科管理</a></li>
           <li id="fourmenu"><a href="/tixing/index"      class='menu'>题型管理</a></li>
           <li id="fivemenu"><a href="/knowset/index"     class='menu'>知识点集合</a></li>

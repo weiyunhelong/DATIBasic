@@ -23,6 +23,7 @@ class Subject extends \yii\db\ActiveRecord
         return [
             [['id','create_at'], 'integer'],
             [['name'], 'string', 'max' => 500],
+            [['name'],'safe'],//一定要加，不然搜索框出不来
         ];
     }
 
