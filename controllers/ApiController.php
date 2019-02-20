@@ -3,23 +3,23 @@
 namespace app\controllers;
 
 use abei2017\wx\Application;
-use app\models\Activity;
-use app\models\ActivityAddress;
-use app\models\ActivityFee;
-use app\models\ActivityImg;
-use app\models\Address;
-use app\models\BookActivity;
-use app\models\Certificate;
-use app\models\MyActivity;
-use app\models\MyCertificate;
+use app\models\Category;
+use app\models\Knowledge;
+use app\models\Knowset;
+use app\models\Managame;
+use app\models\Managroup;
+use app\models\Record;
+use app\models\Subject;
+use app\models\Tiku;
+use app\models\Tixing;
 use app\models\UserAddress;
-use app\models\UserInfo;
 use app\models\WechatUser;
 use Yii;
 use yii\db\Expression;
 use yii\httpclient\Client;
 use yii\web\Response;
 use yii\web\UploadedFile;
+
 
 //小程序工具类
 
@@ -50,10 +50,10 @@ class ApiController extends \yii\web\Controller
             $openid = $data['openid'];
             $model = WechatUser::findOne(['openid' => $openid]);
             if (empty($model))
-            {               
-                return ['status' => 'success', 'openid' => $openid,  'isadmin' =>0,'isnew' =>0];
+            {      
+                return ['status' => 'success', 'openid' => $openid,  'chancenum' =>5,'isnew'=>true];
             }else{
-                return ['status' => 'success', 'openid' => $openid,  'isadmin' => $model->isadmin,'isnew' =>1];
+                return ['status' => 'success', 'openid' => $openid,  'chancenum' => $model->chancenum,'isnew'=>false];
             }
         } else {
             $errmsg = isset($data['errmsg']) ? $data['errmsg'] : '授权出错';
@@ -65,9 +65,9 @@ class ApiController extends \yii\web\Controller
     public function actionSaveuser()
     {
         $openid = Yii::$app->request->post('openid');
-        $wxname = Yii::$app->request->post('wxname');
-        $sex = Yii::$app->request->post('sex');
-        $touxiang = Yii::$app->request->post('touxiang');
+        $nickname = Yii::$app->request->post('nickname');
+        $gender = Yii::$app->request->post('gender');
+        $avatar = Yii::$app->request->post('avatar');
         $country = Yii::$app->request->post('country');
         $province = Yii::$app->request->post('province');        
         $city = Yii::$app->request->post('city');
@@ -83,15 +83,16 @@ class ApiController extends \yii\web\Controller
         if (empty($model)){ 
             $mmodel=new WechatUser();
             $mmodel->openid=$openid;
-            $mmodel->wxname=$wxname;
-            $mmodel->sex=$sex;
-            $mmodel->touxiang=$touxiang;
+            $mmodel->unionid="-1";
+            $mmodel->nickname=$nickname;
+            $mmodel->gender=$gender;
+            $mmodel->avatar=$avatar;
             $mmodel->country=$country;
             $mmodel->province=$province;
-            $mmodel->city=$city;             
-            $mmodel->update_at= time();  
-            $mmodel->isadmin=0;            
-            $mmodel->create_at= time();    
+            $mmodel->city=$city;         
+            $mmodel->chancenum=5;            
+            $mmodel->create_at= time();                  
+            $mmodel->update_at= time();    
             if ($mmodel->save()) {
                 return ['status' => 'success',  'message' => "微信用户创建成功"];
             }else{
@@ -99,12 +100,12 @@ class ApiController extends \yii\web\Controller
             }
         }else{
             $model->openid=$openid;
-            $model->wxname=$wxname;
-            $model->sex=$sex;
-            $model->touxiang=$touxiang;
+            $model->nickname=$nickname;
+            $model->gender=$gender;
+            $model->avatar=$avatar;
             $model->country=$country;
             $model->province=$province;
-            $model->city=$city;             
+            $model->city=$city;                       
             $model->update_at= time();  
 
         if ($model->save()) {
@@ -114,1016 +115,70 @@ class ApiController extends \yii\web\Controller
         }
       }
     }
+    //用户的答题次数减少
+    public function actionUsechance()
+    {
+        //答题记录
+        $openid = Yii::$app->request->post('openid');
 
-    // 2获取考试列表
-    public function actionGetactivity()
-    {   
-        //获取最新的上线的考试
-        $models = Activity::find()->where([
-            'status' => 1
-        ])->orderBy('create_at desc')->all();
+        //用户的答题次数减少1
+        $model= WechatUser::findOne(['openid' => $openid]);
+        $model->chancenum=$model->chancenum-1;
 
-        $data = [];
-        foreach ($models as $k => $model) {
-            // 考试的基本信息
-            $data[$k]['actid'] = $model->id; //考试id
-            $data[$k]['cover'] =  $model->cover; //考试封面
-            $data[$k]['name'] = $model->name; //考试标题
-            $data[$k]['owner'] = $model->owner; //考试所有者
-            $data[$k]['date'] = $model->date; //考试日期
-            $data[$k]['startdt'] = $model->startdt; //考试开始时间
-            $data[$k]['enddt'] = $model->enddt; //考试结束时间
-            $data[$k]['status'] = $model->status; //考试结束时间
-            $feeobj=ActivityFee::find()->where(['actid' => $model->id,'type'=>1])->one();
-            $money=0;
-            if(!empty($feeobj)){
-                $money=$feeobj->fee;
-            }
-            $data[$k]['money'] = $money; //报名费用       
-          }
+        if ($model->save()) {
+            return ['status' => 'success',  'message' => "答题次数减少"];
+        }else{
+            return $model->getErrors();  
+        }
+    }
 
-        return $data;
+    //答题记录
+    public function actionRecord()
+    {
+        //答题记录
+        $openid = Yii::$app->request->post('openid');
+        $tid= Yii::$app->request->post('tid');
+        $ids= Yii::$app->request->post('ids');
+        $rightnum= Yii::$app->request->post('rightnum');
+        $wrongnum= Yii::$app->request->post('wrongnum');
+        
+        //新增用户答题记录
+        $record=new Record();
+        $record->openid=$openid;
+        $record->tid=$tid;
+        $record->ids=$ids;
+        $record->rightnum=$rightnum;
+        $record->wrongnum=$wrongnum;
+        $record->create_at=time();
+
+        if ($record->save()) {
+            return ['status' => 'success',  'message' => "保存答题记录成功"];
+        }else{
+            return $model->getErrors();  
+        }
     }
     
-    //2-0 得到最新的考试
-    public function actionGetnewactivity()
-    {   
-      //获取最新的上线的考试
-      $model = Activity::find()->where(['status'=>1])->orderBy('create_at desc')->one();
+    //获取用户的最好成绩
+    public function actionMaxlevel()
+    {
+        //答题记录
+        $openid = Yii::$app->request->post('openid');
       
-      if(empty($model)){
-        return ['status' => 'success', 'message' => '暂无考试','data'=>0];
-      }else{
-        return ['status' => 'success', 'message' => '获取考试成功','data'=>$model->id];
-      }        
-    }
-    //2-1获取所有的考试
-    public function actionGetallactivity()
-    {   
-      //获取最新的上线的考试
-      $models = Activity::find()->where([
-         'in','status',[0,1,2]
-      ])->orderBy('create_at desc')->all();
-
-      $data = [];
-      foreach ($models as $k => $model) {
-         // 考试的基本信息
-         $data[$k]['actid'] = $model->id; //考试id
-         $data[$k]['cover'] =  $model->cover; //考试封面
-         $data[$k]['name'] = $model->name; //考试标题
-         $data[$k]['owner'] = $model->owner; //考试所有者
-         $data[$k]['date'] = $model->date; //考试日期
-         $data[$k]['startdt'] = $model->startdt; //考试开始时间
-         $data[$k]['enddt'] = $model->enddt; //考试结束时间
-         $data[$k]['status'] = $model->status; //考试结束时间
-         $feeobj=ActivityFee::find()->where(['actid' => $model->id,'type'=>1])->one();
-         $money=0;
-         if(!empty($feeobj)){
-             $money=$feeobj->fee;
-         }
-         $data[$k]['money'] = $money; //报名费用       
-       }
-
-       return $data;
-    }
-
-    // 2-1 清除无效的数据
-    public function actionClearactivity()
-    {
-        //获取无效的考试列表
-        $models = Activity::find()->where([
-            'status' => -1,
-        ])->all();
-
-        //循环删除
-        foreach ($models as $k => $model) {
-            //删除考试的图片
-            $hdimgs =ActivityImg::find()->where(['actid' => $model->id])->all();
-            //循环遍历得到考试对应的任务
-            foreach ($hdimgs as $i => $hdimg) { //删除考试详情和指引
-                $imgpath = $hdimg->imgpath;
-                if (is_file($imgpath)) {
-                    unlink($imgpath);
-                }
-                $hdimg->delete();
-            }
-            //删除考试费用
-            $actfees = ActivityFee::find()->where(['actid' => $model->id])->all();
-            foreach ($actfees as $i => $item) {
-                $item->delete();
-            }
-            //删除考试地址
-            $actaddressss = ActivityAddress::find()->where(['actid' => $model->id])->all();
-            foreach ($actaddressss as $i => $item) { 
-                $item->delete();
-            }
-            //删除考试证书
-            $certs = Certificate::find()->where(['actid' => $model->id])->all();
-            foreach ($certs as $i => $item) { 
-                $item->delete();
-            }
-            //删除考试
-            $model->delete();
-        }
-        return ['status' => 'success', 'message' => '清除数据成功'];
-    }
-
-    // 2-2 获取考试基本信息
-    public function actionActivityinfo()
-    {
-        $id = Yii::$app->request->post('id');
-        $openid = Yii::$app->request->post('openid');
-        //根据考试id，得到
-        $model = Activity::findOne(['id' => $id]);
-        $data=[];
-        if(!empty($model)) {
-            // 考试的基本信息
-            $data[0]['actid'] = $model->id; //考试id
-            $data[0]['cover'] = $model->cover; //考试封面
-            $data[0]['name'] = $model->name; //考试标题
-            $data[0]['owner'] = $model->owner; //考试所有者
-            $data[0]['startdt'] = $model->startdt; //考试开始日期
-            $data[0]['enddt'] =$model->enddt; //考试结束日期
-            $data[0]['date'] =$model->date; //考试结束日期
-            $data[0]['status'] =$model->status; //考试结束日期
-            $feeobj=ActivityFee::find()->where(['actid' => $model->id,'type'=>1])->one();
-            $money=0;
-            if(!empty($feeobj)){
-                $money=$feeobj->fee;
-            }   
-            $data[0]['money'] = $money;  //报名费
-        }
-             
-        //是否存在报名记录
-        $isbookobj=BookActivity::find()->where(['actid'=>$id,'openid'=>$openid])->one();
-        $isbook=false;
-        if(!empty($isbookobj)){
-            $data[0]['isbook']=true;
-        }else{
-            $data[0]['isbook']=false;
-        }
-        return ['status' => 'success', 'message' => '获取数据成功','data'=>$data];
-    }
-     
-    // 2-3 获取考试基本信息
-    public function actionActbaseinfo()
-    {
-        $id = Yii::$app->request->post('id');
-        //根据考试id，得到
-        $model = Activity::findOne(['id' => $id]);
-        if(!empty($model)) {
-            // 考试的基本信息
-            $data['actid'] = $model->id; //考试id
-            $data['cover'] = $model->cover; //考试封面
-            $data['name'] = $model->name; //考试标题
-            $data['owner'] = $model->owner; //考试所有者
-            $data['startdt'] = $model->startdt; //考试开始日期
-            $data['enddt'] =$model->enddt; //考试结束日期
-            $data['date'] =$model->date; //考试结束日期
-            $data['status'] =$model->status; //考试结束日期
-            $feeobj=ActivityFee::find()->where(['actid' => $model->id,'type'=>1])->one();
-            $money=0;
-            if(!empty($feeobj)){
-                $money=$feeobj->fee;
-            }   
-            $data['money'] = $money;  //报名费
-
-            return ['status' => 'success', 'message' => '获取数据成功','data'=>$data];
-        }else{
-            return ['status' => 'fail', 'message' => 'actid不能为空'];
-        }
-    }
-
-    // 3获取考试图片
-    public function actionActivityimg()
-    {
-        $actid = Yii::$app->request->post('actid');
-        $type = Yii::$app->request->post('type');
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'actid不能为空'];
-        }
-
-        if (!$type) {
-            return ['status' => 'fail', 'message' => 'type不能为空'];
-        }
-
-        $models = ActivityImg::find()->where([
-            'actid' => $actid,
-            'type' => $type,
-        ])->all();
-        $data = [];
-        foreach ($models as $k => $model) {
-            $data[$k]['id'] = $model->id;
-            $data[$k]['imgpath'] =  $model->imgpath;
-        }
-       
-        return ['status' => 'success', 'message' => '获取数据成功','data'=>$data];
-    }
-
-    // 4保存用户信息
-    public function actionEdituserinfo()
-    {
-        //参数部分
-        $openid = Yii::$app->request->post('openid');
-        $name = Yii::$app->request->post('name');
-        $namecn = Yii::$app->request->post('namecn');
-        $sex = Yii::$app->request->post('sex');     
-        $idcode = Yii::$app->request->post('idcode');
-        $phone = Yii::$app->request->post('phone');
-        $email = Yii::$app->request->post('email');
-        $school = Yii::$app->request->post('school');
-        $xueyuan = Yii::$app->request->post('xueyuan');
-        $banji = Yii::$app->request->post('banji');
-
-        if (!$openid) {
-            return ['status' => 'fail', 'message' => 'openid不能为空'];
-        }
-        //根据openid获取得到用户信息
-        $model = UserInfo::findOne(['openid' => $openid]);
-        
-        if(empty($model)){
-            //赋值部分
-            $mmodel=new UserInfo();           
-            $mmodel->openid= $openid;
-            $mmodel->name= $name;
-            $mmodel->namecn= $namecn;
-            $mmodel->sex= $sex;
-            $mmodel->idcode= $idcode;
-            $mmodel->phone= $phone;       
-            $mmodel->email= $email;
-            $mmodel->school= $school;
-            $mmodel->xueyuan= $xueyuan;
-            $mmodel->banji= $banji;
-            $mmodel->update_at= time();
-            $mmodel->create_at= time();
-        
-           if ($mmodel->save()) {
-            return ['status' => 'success','data'=>$mmodel,'message'=>'创建用户信息成功'];
-           }else{
-            return $mmodel->getErrors();
-           }
-        }else{
-            //赋值部分
-            $model->openid= $openid;
-            $model->name= $name;
-            $model->namecn= $namecn;
-            $model->sex= $sex;
-            $model->idcode= $idcode;
-            $model->phone= $phone;       
-            $model->email= $email;
-            $model->school= $school;
-            $model->xueyuan= $xueyuan;
-            $model->banji= $banji;
-            $model->update_at= time();
-        
-           if ($model->save()) {
-            return ['status' => 'success','data'=>$model,'message'=>'更新用户信息成功'];
-           }else{
-            return $model->getErrors();
-          }
-        }             
-    }
-
-    // 5编辑用户地址
-    public function actionEdituseraddress()
-    {
-        $openid = Yii::$app->request->post('openid');
-        $province = Yii::$app->request->post('province');
-        $city = Yii::$app->request->post('city');
-        $district = Yii::$app->request->post('district');
-        $detail = Yii::$app->request->post('detail');
-        $name = Yii::$app->request->post('name');
-        $phone = Yii::$app->request->post('phone');
-
-        if (!$openid) {
-            return ['status' => 'fail', 'message' => 'openid不能为空'];
-        }
-        //赋值部分
-        $model = UserAddress::findOne(['openid' => $openid]);
-        
-
-        if(empty($model)){
-            $mmodel=new UserAddress();
-            $mmodel->openid = $openid;
-            $mmodel->province = $province;
-            $mmodel->city = $city;
-            $mmodel->district = $district;
-            $mmodel->detail = $detail;
-            $mmodel->name = $name;
-            $mmodel->phone = $phone;
-            $mmodel->update_at = time();
-            $mmodel->create_at = time();
-
-            if ($mmodel->save()) { 
-                return ['status' => 'success','data'=>$mmodel,'message'=>'创建邮寄地址成功'];
-            }else{
-                return $mmodel->getErrors();
-            }            
-        }else{
-            $model->openid = $openid;
-            $model->province = $province;
-            $model->city = $city;
-            $model->district = $district;
-            $model->detail = $detail;
-            $model->name = $name;
-            $model->phone = $phone;
-            $model->update_at = time();
-           if ($model->save()) { 
-             return ['status' => 'success','data'=>$model,'message'=>'更新邮寄地址成功'];
-           }else{
-            return $model->getErrors();
-          }
-        }
-    }
-
-    // 6报名考试
-    public function actionBookactivity()
-    {
-        $openid = Yii::$app->request->post('openid');
-        $actid = Yii::$app->request->post('actid');
-        $feeids = Yii::$app->request->post('feeids');
-        $addressid = Yii::$app->request->post('addressid');
-        $sumprice = Yii::$app->request->post('sumprice');
-
-        if (!$openid||!$actid||!$feeids||!$sumprice||!$addressid) {
-            return ['status' => 'fail', 'message' => '参数缺失'];
-        }
-        //活动报名
-        $model =new BookActivity();
-        $model->openid = $openid;
-        $model->actid = $actid;
-        $model->feeids = $feeids;
-        $model->addressid = $addressid;
-        $model->sumprice = $sumprice;
-        $model->create_at = time();
-        $model->update_at = time();        
-
-        
-        //我的报名
-        $myact=new MyActivity();
-        $myact->actid = $actid;
-        $myact->openid = $openid;
-        $myact->addressid= $addressid;
-        $myact->create_at=time();
-        $myact->update_at=time();
-
-        if ($model->save()&&$myact->save()) { 
-            return ['status' => 'success','message'=>'报名成功'];
-        }else{
-            return ['status' => 'fail','message'=>'报名失败!'];
-        }
-    }
-
-    // 7获取用户基本信息
-    public function actionGetuserinfo()
-    {
-        $openid = Yii::$app->request->post('openid');
-
-        if (!$openid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-        //赋值部分
-        $model =UserInfo::findOne(['openid'=>$openid]);
-        if(empty($model)){
-            return ['status' => 'fail','message'=>'查无此用户信息'];
-        }else{
-            return ['status' => 'success','data'=>$model];
-        }
-    }
-
-    // 8获取用户邮寄地址
-    public function actionGetuseraddress()
-    {
-        $openid = Yii::$app->request->post('openid');
-
-        if (!$openid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-        //赋值部分
-        $model =UserAddress::findOne(['openid'=>$openid]);
-        if(empty($model)){
-            return ['status' => 'fail','message'=>'查无此用户邮寄地址'];
-        }else{
-            return ['status' => 'success','data'=>$model];
-        }
-    }
-
-    // 9获取考试地址
-    public function actionActivityaddress()
-    {
-        $actid = Yii::$app->request->post('actid');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-        //赋值部分
-        $datalist =ActivityAddress::find()->where(['status'=>0])->all();
-        $data=[];
-        foreach ($datalist as $k => $model) {
-            $data[$k]= $model->address;
-        }
-        return ['status' => 'success','data'=> $data,'message'=>'获取考试地址成功'];
-    }
-
-    
-    // 9-1获取全部的地址
-    public function actionAlladdress()
-    {        
-        //赋值部分
-        $data =Address::find()->where(['status'=>0])->all();
-        return ['status' => 'success','data'=> $data,'message'=>'获取地址成功'];
-    }
-    
-    // 9-2获取地址详情
-    public function actionGetaddress()
-    {
-        $id = Yii::$app->request->post('id');
-
-        if (!$id) {
-            return ['status' => 'fail', 'message' => 'id参数缺失'];
-        }
-        //赋值部分
-        $data =Address::find()->where(['id'=>$id])->one();
-        return ['status' => 'success','data'=> $data,'message'=>'获取考试地址成功'];
-    }
-
-    // 9-3保存地址
-    public function actionEditaddress()
-    {
-        $id = Yii::$app->request->post('id');
-        $province = Yii::$app->request->post('province');
-        $city = Yii::$app->request->post('city');
-        $district = Yii::$app->request->post('district');
-        $detail = Yii::$app->request->post('detail');
-        $name = Yii::$app->request->post('name');
-        $isfee = Yii::$app->request->post('isfee');
-
-        
-        //赋值部分
-        $model =Address::find()->where(['id'=>$id])->one();
-        if(empty($model)){
-            $mmodel =new  Address();                  
-            $mmodel->province=$province;
-            $mmodel->city=$city;
-            $mmodel->district=$district;
-            $mmodel->detail=$detail;
-            $mmodel->name=$name;
-            $mmodel->isfee=$isfee;
-            $mmodel->status=0;
-            $mmodel->update_at=time();
-            $mmodel->create_at=time();
-            
-            if($mmodel->save()){
-              return ['status' => 'success','data'=> $mmodel,'message'=>'创建考试地址成功'];
-            }else{
-              return $mmodel->getErrors();
-            }
-
-        }else{
-      
-            $model->province=$province;
-            $model->city=$city;
-            $model->district=$district;
-            $model->detail=$detail;
-            $model->name=$name;
-            $model->isfee=$isfee;
-            $model->status=0;
-            $model->update_at=time();
-            if($model->save()){
-              return ['status' => 'success','data'=> $model,'message'=>'更新考试地址成功'];
-            }else{
-              return $model->getErrors();
-            }
-        }
-    }
-
-    // 9-4删除地址
-    public function actionDeleteaddress()
-    {
-        $id = Yii::$app->request->post('id');
-        
-        //赋值部分
-        $model =Address::find()->where(['id'=>$id])->one();
-        if(empty($model)){
-            return ['status' => 'fail','message'=>'地址不存在'];  
-        }else{
-            $model->status=1;            
-            if($model->save()){
-               return ['status' => 'success','data'=> $model,'message'=>'删除地址成功'];
-            }else{
-               return $model->getErrors();
-            }           
-        }
-    }
-
-    // 9-5保存考试的地址
-    public function actionEditactadd()
-    {
-        $id = Yii::$app->request->post('id');
-        $actid = Yii::$app->request->post('actid');
-        $addressid = Yii::$app->request->post('addressid');
-        $status = Yii::$app->request->post('status');
-
-        if (!$id) {
-            return ['status' => 'fail', 'message' => '参数缺失'];
-        }
-        //赋值部分
-        $model =ActivityAddress::find()->where(['id'=>$id])->one();
-        if(empty($model)){
-            $mmodel =new  ActivityAddress();                  
-            $mmodel->actid=$actid;
-            $mmodel->addressid=$addressid;
-            $mmodel->status=$status;
-            $mmodel->update_at=time();
-            $mmodel->create_at=time();
-            
-            if($mmodel->save()){
-              return ['status' => 'success','data'=> $mmodel,'message'=>'创建考试地址成功'];
-            }else{
-              return $mmodel->getErrors();
-            }
-
-        }else{
-            $model->actid=$actid;
-            $model->addressid=$addressid;
-            $model->status=$status;
-            $model->update_at=time();
-            if($model->save()){
-              return ['status' => 'success','data'=> $model,'message'=>'更新考试地址成功'];
-            }else{
-              return $model->getErrors();
-            }
-        }
-    }
-
-    // 9-6考场学生
-    public function actionKaochangdata()
-    {
-        $id = Yii::$app->request->post('id');
-
-        if (!$id) {
-            return ['status' => 'fail', 'message' => '参数缺失'];
-        }
-        //赋值部分
-        $datalist =MyActivity::find()->where(['addressid'=>$id])->all();
-        $data = [];
-        $index=0;
-        foreach ($datalist as $k => $dl) {
-            // 学生的基本信息
-            $data[$k]=$dl->userinfo;               
-        }
-
-        return ['status' => 'success','data'=>$data];
-    }
-
-
-    // 10编辑考试地址
-    public function actionEditactaddress()
-    {
-        $id = Yii::$app->request->post('id');
-        $actid = Yii::$app->request->post('actid');
-        $addressid = Yii::$app->request->post('addressid');
-        $status = Yii::$app->request->post('status');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-
-        //考试地址信息
-        $model =ActivityAddress::find()->where(['id'=>$id])->one();
-        
-        if(empty($model)){
-            $mmodel=new ActivityAddress();              
-            $mmodel->actid=$actid;           
-            $mmodel->addressid=$addressid;
-            $mmodel->status=$status;            
-            $mmodel->create_at=time();  
-            $mmodel->update_at=time();
-                
-            if($mmodel->save()){
-                return ['status' => 'success','data'=> $mmodel,'message'=>'创建考试地址成功'];
-            }else{
-                return $mmodel->getErrors();
-            }
-        }else{                
-            $model->actid=$actid;           
-            $model->addressid=$addressid;
-            $model->status=$status;
-            $model->status=$status;
-            $model->update_at=time();
-        
-            if($model->save()){
-               return ['status' => 'success','data'=> $model,'message'=>'更新考试地址成功'];
-            }else{
-               return $model->getErrors();
-            }
+        //新增用户答题记录
+        $maxval=Record::find()->select('max(rightnum) as maxrightnum')->where(['=', 'openid', $openid])->asArray()->all();//一个二维数组c
+        $level=$maxval[0]['maxrightnum'];
+        if($level==null){
+            $level=0;
         }
         
-    }
-
-    // 11-0判断该考点报名费用
-    public function actionActivityfee()
-    {
-        $actid = Yii::$app->request->post('actid');
-        $addressid = Yii::$app->request->post('addressid');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-        //考试费用
-        $data =ActivityFee::find()->where(['actid'=>$actid])->all();
-
-        //考点是否先缴费
-        $feeobj =Address::find()->where(['id'=>$addressid])->one();
-        $isfee=false;
-        
-        if(!empty($feeobj)){
-            $isfee=$feeobj->isfee==0?false:true;
-        }
-        return ['status' => 'success', 'data' => $data,'isfee'=>$isfee];
-    }
-
-    // 11-1编辑考试费用
-    public function actionEditactfee()
-    {
-        $actid = Yii::$app->request->post('actid');
-        $id = Yii::$app->request->post('id');
-        $type = Yii::$app->request->post('type');
-        $name = Yii::$app->request->post('name');
-        $money = Yii::$app->request->post('money');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-
-        //考试费用
-        $model =ActivityFee::find()->where(['id'=>$id])->one();
-        
-        if(empty($model)){
-            $mmodel=new  ActivityFee();
-            $mmodel->create_at=time();
-            $mmodel->actid=$actid;
-            $mmodel->type=$type;
-            $mmodel->name=$name;
-            $mmodel->fee=$money;
-            $mmodel->update_at=time(); 
-             
-            if($mmodel->save()){
-                return ['status' => 'success','data'=> $mmodel,'message'=>'创建考试费用成功'];
-            }else{
-                return $model->getErrors();
-            }
+        if($level<6){
+            return ['status' => 'success',  'data' => 1]; 
+        }else if($level>5&&$level<12){
+            return ['status' => 'success',  'data' => 2]; 
         }else{
-               
-            $model->actid=$actid;
-            $model->type=$type;
-            $model->name=$name;
-            $model->fee=$money;
-            $model->update_at=time();
-              
-            if($model->save()){
-                return ['status' => 'success','data'=> $model,'message'=>'更新考试费用成功'];
-            }else{
-                return $model->getErrors();
-            }
-        }
-    }
-
-    // 11-2 删除考试费用
-    public function actionDeleteactfee(){
-       $id = Yii::$app->request->post('id');
-       $model =ActivityFee::find()->where(['id'=>$id])->one();
-       if(!empty($model)){
-          //删除考试
-          $model->delete();
-          return ['status' => 'success','message' => '删除考试成功'];
-       }else{
-          return ['status' => 'fail','message' => '查询不到此费用'];
-       }
-    } 
-
-    // 12编辑考试
-    public function actionEditactivity()
-    {      
-        $id = Yii::$app->request->post('id');
-        $cover = Yii::$app->request->post('cover');
-        $name = Yii::$app->request->post('name');
-        $owner = Yii::$app->request->post('owner');
-        $date = Yii::$app->request->post('date');
-        $startdt = Yii::$app->request->post('startdt');
-        $enddt = Yii::$app->request->post('enddt');
-        $status = Yii::$app->request->post('status');
-    
-       
-        //考试地址信息
-        $model =Activity::find()->where(['id'=>$id])->one();
-        
-        if(empty($model)){
-            $mmodel=new Activity();
-            $mmodel->cover=$cover;
-            $mmodel->name=$name;
-            $mmodel->owner=$owner;
-            $mmodel->date=$date;
-            $mmodel->startdt=$startdt;
-            $mmodel->enddt=$enddt;
-            $mmodel->status=$status;
-            $mmodel->update_at=time();
-            $mmodel->create_at=time();
-
-            if($mmodel->save()){
-                return ['status' => 'success','data'=> $mmodel,'创建考试成功'];
-            }else{
-                return $mmodel->getErrors();
-            }
-        }else{
-            $model->cover=$cover;
-            $model->name=$name;
-            $model->owner=$owner;
-            $model->date=$date;
-            $model->startdt=$startdt;
-            $model->enddt=$enddt;
-            $model->status=$status;
-            $model->update_at=time();
-
-            if($model->save()){
-                return ['status' => 'success','data'=> $model,'更新考试成功'];
-            }else{
-                return $model->getErrors();
-            }
-        }
-    }
-
-    // 13上传图片
-    public function actionUploadimg()
-    {      
-        $upload= UploadedFile::getInstanceByName('file');       
-     
-        //return $params;
-        // 处理文件
-        $path = 'uploads/images/' . uniqid() . '.' . $upload->extension;
-        if($upload->saveAs($path)){
-            $imgpath= Yii::$app->request->hostInfo . '/' . $path;
-            return ['status' => 'success', 'message' => '图片上传成功','data'=>$imgpath]; //图片的路径
-        }else{
-            return ['status' => 'fail', 'message' => '图片保存失败'];
-        }
-  }
-
-    // 14保存考试图片
-    public function actionEditactimg()
-    {      
-        $id = Yii::$app->request->post('id');
-        $actid = Yii::$app->request->post('actid');
-        $imgpath = Yii::$app->request->post('imgpath');
-        $type = Yii::$app->request->post('type');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'actid参数缺失'];
-        }
-        if (!$type) {
-            return ['status' => 'fail', 'message' => 'type参数缺失'];
+            return ['status' => 'success',  'data' => 3]; 
         }
 
-        //考试的图片
-        $model =ActivityImg::find()->where(['id'=>$id])->one();
-       
-        if(empty($model)){
-            $mmodel =new ActivityImg();
-            $mmodel->actid=$actid;
-            $mmodel->imgpath=$imgpath;
-            $mmodel->type=$type;
-            $mmodel->update_at=time();
-            $mmodel->create_at=time();
-            if($mmodel->save()){
-                return ['status' => 'success','data'=> $mmodel,'message'=>'创建考试图片'];
-            }else{
-                return $mmodel->getErrors();
-            }    
-        }else{
-            $model->actid=$actid;
-            $model->imgpath=$imgpath;
-            $model->type=$type;
-            $model->update_at=time();
-            if($model->save()){
-                return ['status' => 'success','data'=> $model,'message'=>'更新考试图片'];
-            }else{
-                return $model->getErrors();
-            }    
-        }
-    }
-
-    // 14-1删除考试图片
-    public function actionDeleteactimg()
-    {      
-         $id = Yii::$app->request->post('id');
- 
-         //考试的图片
-         $model =ActivityImg::find()->where(['id'=>$id])->one();         
-         if($model->delete()){
-            return ['status' => 'success','message'=>'删除考试图片成功'];
-        }else{
-            return $model->getErrors();
-        }   
-    }   
-
-
-    // 15我的证书
-    public function actionMycertificate()
-    {      
-        $openid = Yii::$app->request->post('openid');
-
-        if (!$openid) {
-            return ['status' => 'fail', 'message' => 'openid参数缺失'];
-        }
-
-        //我的证书
-        $data =MyCertificate::find()->where(['openid'=>$openid])->all();
-        
-        return ['status' => 'success', 'message' => '获取证书成功','data'=>$data];
-        
-    }
-
-
-    // 16考试证书的编辑
-    public function actionEditcetificate()
-    {      
-        $id = Yii::$app->request->post('id');
-        $actid = Yii::$app->request->post('actid');
-        $name = Yii::$app->request->post('name');
-        $startdate = Yii::$app->request->post('startdate');
-        $enddate = Yii::$app->request->post('enddate');
-        $minscore = Yii::$app->request->post('minscore');
-        $maxscore = Yii::$app->request->post('maxscore');
-        $opttype = Yii::$app->request->post('opttype');
-
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'actid参数缺失'];
-        }
-        if (!$opttype) {
-            return ['status' => 'fail', 'message' => 'opttype参数缺失'];
-        }
-
-        //考试的证书
-        $model =Certificate::find()->where(['id'=>$id])->one();
-        if($opttype!=2){          
-            //删除
-            $model->delete();
-            return ['status' => 'success'];
-        }else{
-            $model->actid=$actid;
-            $model->name=$name;
-            $model->startdate=$startdate;
-            $model->enddate=$enddate;
-            $model->minscore=$minscore;
-            $model->maxscore=$maxscore;
-            $model->update_at=time();
-            if(empty($model)){
-                $model->create_at=time();
-            }
-            if($model->save()){
-                return ['status' => 'success','data'=> $model];
-            }else{
-                return $model->getErrors();
-            }
-
-        }
-    }
-
-    
-    // 17考试证书列表
-    public function actionActivitycetlist()
-    {      
-
-        $actid = Yii::$app->request->post('actid');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => 'actid参数缺失'];
-        }
-
-        //考试的证书
-        $data =Certificate::find()->where(['actid'=>$actid])->all();
-        return ['status' => 'success','data'=> $data];
-    }
-
-    // 18我的考试列表
-    public function actionMyactlist()
-    {
-        $openid = Yii::$app->request->post('openid');     
-        $type = Yii::$app->request->post('type');
-
-        if (!$openid || is_null($type)) {
-            return ['status' => 'fail', 'message' => '参数错误'];
-        }
-        if ($type == 0) {
-            $where = ['myactivity.openid' => $openid];
-        }
-        if ($type == 1) {
-            $where = ['activity.status' => 1, 'myactivity.openid' => $openid];
-        }
-        if ($type == 2) {
-            $where = ['activity.status' => 2, 'myactivity.openid' => $openid];
-        }
-        $models = MyActivity::find()->joinWith('activity')->where($where)->all();
-        $data = [];
-        foreach ($models as $k => $model) {
-            $data[$k]['actid'] = $model->activity->id;
-            $data[$k]['cover'] = $model->activity->cover;
-            $data[$k]['title'] = $model->activity->name;
-            $data[$k]['owner'] = $model->activity->owner;
-            $data[$k]['status'] = $model->activity->status;
-            $data[$k]['date'] = $model->activity->date;
-            $data[$k]['startdt'] = $model->activity->startdt;
-            $data[$k]['enddt'] =$model->activity->enddt;
-          
-            $feeobj=ActivityFee::find()->where(['actid' => $model->id,'type'=>1])->one();
-            $money=0;
-            if(!empty($feeobj)){
-                $money=$feeobj->fee;
-            }
-            $data[$k]['money'] = $money; //报名费用
-        }
-        return ['status' => 'success','data'=> $data];
-    }
-
-    //19更新考试的状态
-    public function actionUpdateactstatus(){
-        $actid = Yii::$app->request->post('actid');     
-        $status = Yii::$app->request->post('status');
-
-        if (!$actid) {
-            return ['status' => 'fail', 'message' => '参数错误'];
-        }
-        $model = Activity::find()->where(['id'=>$actid])->one();
-        if(empty($model)){
-            return ['status' => 'fail', 'message' => '该活动已不存在'];
-        }else{
-          $model->status=$status;
-          if($model->save()){
-            return ['status' => 'success', 'message' => '保存成功'];
-          }else{
-            return ['status' => 'fail', 'message' => '保存失败'];
-          }
-        }
-        
-    }
-
-    //20 得到考点的考试
-    public function actionGetactaddress(){
-        $addressid = Yii::$app->request->post('addressid');   
-
-        if (!$addressid) {
-            return ['status' => 'fail', 'message' => '参数错误'];
-        }
-        $models = ActivityAddress::find()->where(['addressid'=>$addressid])->all();       
-        $data=[];         
-        foreach($models as $k=>$model){
-            $actobj=Activity::find()->where(['id'=>$model->actid])->one();
-            $data[$index]=$actobj;
-        }
-        return ['status' => 'success', 'message' => '获取数据成功','data'=>$data];        
-    }
-
-    //21 得到考点考试的报名人数
-    public function actionBookactuser(){
-        $addressid = Yii::$app->request->post('addressid');   
-        $actid = Yii::$app->request->post('actid');   
-        if (!$addressid||$actid) {
-            return ['status' => 'fail', 'message' => '参数错误'];
-        }
-        $datalist = MyActivity::find()->where(['addressid'=>$addressid,'actid'=>$actid])->all();       
-        //赋值部分        
-        $data = [];
-        foreach ($datalist as $k => $dl) {
-          // 学生的基本信息
-          $data[$k]=$dl->userinfo;               
-        }
-        return ['status' => 'success', 'message' => '获取数据成功','data'=>$data];        
-    }
-
-    //22 得到考点考试的报名人数
-    public function actionGetbookuser(){
-        $addressid = Yii::$app->request->post('addressid');   
-        
-        //查询获取最新的上线考试
-        $model = Activity::find()->where(['status'=>1])->orderBy('create_at desc')->one();  
-        //['or' , ['status' => [1,2]];'status'=>2
-        $actid =0; 
-        if(!empty($model)){
-            $actid = $model->id; 
-        }
-        //return ['status' => 'success', 'message' => '获取数据成功','data'=>$actid];     
-        if (!$addressid) {
-            return ['status' => 'fail', 'message' => '参数错误'];
-        }
-        $datalist = MyActivity::find()->where(['addressid'=>$addressid,'actid'=>$actid])->all();       
-        //赋值部分        
-        $data = [];
-        foreach ($datalist as $k => $dl) {
-          // 学生的基本信息
-          $data[$k]=$dl->userinfo;               
-        }
-        return ['status' => 'success', 'message' => '获取数据成功','data'=>$data];        
     }
     // 小程序码
     public function actionWxcode()

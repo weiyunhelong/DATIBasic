@@ -22,7 +22,7 @@ class WechatUser extends \yii\db\ActiveRecord
     {
         return [
             [['id','gender','chancenum','create_at', 'update_at'], 'integer'],
-            [['openid','unionid','nickName', 'avatar','country','province','city'], 'string', 'max' => 500],
+            [['openid','unionid','nickname', 'avatar','country','province','city'], 'string', 'max' => 500],
         ];
     }
 
@@ -35,7 +35,7 @@ class WechatUser extends \yii\db\ActiveRecord
             'id' => 'id',
             'openid' => 'OpenId',
             'unionid' => 'UnionId',
-            'nickName' => '昵称',
+            'nickname' => '昵称',
             'avatar' => '头像',
             'gender' => '性别',
             'country' => '国家',

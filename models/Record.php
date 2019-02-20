@@ -21,8 +21,8 @@ class Record extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','tid','create_at'], 'integer'],
-            [['openid'], 'string', 'max' => 500],
+            [['id','tid','rightnum','wrongnum','create_at'], 'integer'],
+            [['openid','ids'], 'string', 'max' => 500],
         ];
     }
 
@@ -34,7 +34,10 @@ class Record extends \yii\db\ActiveRecord
         return [
             'id' => 'id',
             'openid' => 'Openid',            
-            'tid' => 'Tid',           
+            'tid' => 'Tid',    
+            'ids' => 'ids',  
+            'rightnum' => '答对个数', 
+            'wrongnum' => '答错个数',  
             'create_at' => '创建时间'
         ];        
     }
