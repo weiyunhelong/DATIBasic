@@ -180,6 +180,23 @@ class ApiController extends \yii\web\Controller
         }
 
     }
+
+    //获取推行官答题次数
+    public function actionTxchance()
+    {
+        //推行官的openid
+        $topenid = Yii::$app->request->post('openid');
+      
+        //新增用户答题记录
+        $wxuser=WechatUser::find()->where(['=', 'topenid', $topenid])->one();
+       
+        if($wxuser==null){
+            return ['status' => 'success',  'data' => 5]; 
+        }else{
+            return ['status' => 'success',  'data' =>  $wxuser->chancenum]; 
+        }
+
+    }
     // 小程序码
     public function actionWxcode()
     {
