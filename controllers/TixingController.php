@@ -7,11 +7,10 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
-use app\models\Subject;
-use app\models\Category;
+use app\models\Tixing;
 use yii\data\ActiveDataProvider;
 
-class CategoryController extends Controller
+class TixingController extends Controller
 {
 
     /**
@@ -68,8 +67,9 @@ class CategoryController extends Controller
             Yii::$app->end();
         }
         $this->layout='@app/views/layouts/newlayout.php';
+        $name= Yii::$app->request->get('name');
         $provider = new ActiveDataProvider([
-            'query' => Category::find()->where([]),
+            'query' => Tixing::find()->where([])->andFilterWhere(['like', 'name', $name]),
             'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
             'pagination' => [
                 'pageSize' => 20,
@@ -81,22 +81,23 @@ class CategoryController extends Controller
         ]);
     }
        
-    //编辑学科
+    //编辑题型
     public function actionEdit()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
-        $id= Yii::$app->request->get('id');
-        $model = Category::findOne($id);
-        if (!empty($model)) {
+        $id= Yii::$app->request->get('id');   
+        $model = Tixing::findOne($id);        
+        if(!empty($model)){
             return $this->render('edit', [
                 'model' => $model,
             ]);
-        } else {
-            $newmodel=new Category();
+        }else{
+            $newmodel=new Tixing();
             return $this->render('edit', [
                 'model' => $newmodel,
             ]);
         }
+        
     }
     
     //根据ID获取到基本信息
@@ -110,89 +111,71 @@ class CategoryController extends Controller
         $id= Yii::$app->request->get('id');
         $id=(int)$id;
 
-        //通过id得到学科
-        $model=Category::find()->where(['id'=>$id])->one();
-        $subjects=Subject::find()->where([])->all();
-        if (!empty($model)) {
-            $name=$model->name;
-            $select="";
-            foreach ($subjects as $k=>$v) {
-                if ($v->id==$model->subjectid) {
-                    $select=$select . "<option selected='selected' value='".$v->id."'>".$v->name."</option>";
-                } else {
-                    $select=$select . "<option value='".$v->id."'>".$v->name."</option>";
-                }
-            }
-            return ['status'=>'success', 'name'=>$name,'select'=>$select];
-        } else {
-            $name="";
-            $select="";
-            foreach ($subjects as $k=>$v) {
-                $select=$select . "<option value='".$v->id."'>".$v->name."</option>";
-            }
-            return ['status'=>'success', 'name'=>$name,'select'=>$select];
+        //通过id得到题型
+        $model=Tixing::find()->where(['id'=>$id])->one();
+        if(!empty($model)){
+            return ['status'=>'success', 'data'=>$model];
+        }else{
+            $nmodel=new Tixing();
+            return ['status'=>'success', 'data'=>$nmodel];
         }
     }
 
-    //保存学科的数据
+    //保存题型的数据
     public function actionSave()
     {
-        // 返回数据格式为 json
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        // 关闭 csrf 验证
-        $this->enableCsrfValidation = false;
+         // 返回数据格式为 json
+         Yii::$app->response->format = Response::FORMAT_JSON;
+         // 关闭 csrf 验证
+         $this->enableCsrfValidation = false;
 
         $id= Yii::$app->request->get('id');
         $id=(int)$id;
         $name= Yii::$app->request->get('name');
-        $subjectid= Yii::$app->request->get('subjectid');
-        $subjectid=(int)$subjectid;
 
-        //通过id得到学科
-        $model=Category::find()->where(['id'=>$id])->one();
-        if (!empty($model)) {
+        //通过id得到题型
+        $model=Tixing::find()->where(['id'=>$id])->one();
+        if(!empty($model)){
             $model->name=$name;
-            $model->subjectid=$subjectid;
             $model->update_at=time();
             $model->save();
 
             if (!$model->save()) {
                 return ['status'=>'fail', 'message'=>'保存失败'];
-            } else {
+            }else{
                 return ['status'=>'success', 'message'=>'保存成功'];
             }
-        } else {
-            $nmodel=new Category();
+        }else{
+            $nmodel=new Tixing();
             $nmodel->name=$name;
-            $nmodel->subjectid=$subjectid;
             $nmodel->create_at=time();
             $nmodel->update_at=time();
             $nmodel->save();
 
             if (!$nmodel->save()) {
                 return ['status'=>'fail', 'message'=>'保存失败'];
-            } else {
+            }else{
                 return ['status'=>'success', 'message'=>'保存成功'];
             }
         }
     }
-    
+
     //删除数据
     public function actionDelete()
     {
-        // 返回数据格式为 json
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        // 关闭 csrf 验证
-        $this->enableCsrfValidation = false;
+         // 返回数据格式为 json
+         Yii::$app->response->format = Response::FORMAT_JSON;
+         // 关闭 csrf 验证
+         $this->enableCsrfValidation = false;
 
         $ids= Yii::$app->request->post('ids');
-        $delids=explode(',', $ids);
-        
-        foreach ($delids as $k => $v) {
-            if ($v!='') {
-                $delm= Category::findOne((int)$v);
-                $delm->delete();
-            }
+        $delids=explode(',',$ids);
+
+        foreach($delids as $k => $v){
+           if($v!=''){
+            $delm= Tixing::findOne((int)$v);
+            $delm->delete();
+           }
         }
         return ['status'=>'success', 'message'=>'保存成功'];
     }
@@ -230,4 +213,5 @@ class CategoryController extends Controller
 
         return $this->goHome();
     }
+
 }

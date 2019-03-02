@@ -6,37 +6,50 @@ use yii\grid\GridView;
 /* @var $this yii\web\View */
 ?>
 <script type="text/javascript">
+
 $(function(){
-    $("#fourmenu").addClass("active");
+    $("#fivemenu").addClass("active");
     var params=window.location.search;
-    var names=params.split('&')[0];
-    var name=params.split('=')[1];
-    $("#txt_search").val(decodeURIComponent(name));
+    var names=params.split('&')[1];
+    var name=params.split('=')[2];
+    $("#subjecttxt").html(decodeURIComponent(name));
 })
+
+//返回操作
+function Back(){
+  window.history.go(-1);
+}
 
 //编辑页面
 function editopt(id){
+  var params=window.location.search;
+  var names=params.split('&')[1];
+  var cid=params.split('=')[1];
    //iframe窗
   layer.open({
     type: 2,
-    title: '编辑题型',
+    title: '编辑知识点集合',
     shadeClose: true,
     shade: 0.8,
     area: ['380px', '300px'],
-    content: '/tixing/edit?id='+id //iframe的url
+    content: '/knownset/edit?id='+id+'&cid='+cid //iframe的url
   });
 }
 
 //新增页面
 function Add(){
+  var params=window.location.search;
+  var names=params.split('&')[1];
+  var cid=params.split('=')[1];
+
   //iframe窗
   layer.open({
     type: 2,
-    title: '新建题型',
+    title: '添加知识点集合',
     shadeClose: true,
     shade: 0.8,
     area: ['380px', '300px'],
-    content: '/tixing/edit?id=0' //iframe的url
+    content: '/knownset/add?id=0'+'&cid='+cid //iframe的url
   });
 }
 
@@ -57,7 +70,7 @@ function Delete(){
 
          $.ajax({
            type:'post',
-           url:'/tixing/delete',
+           url:'/knownset/delete',
            data:{
             ids:ids+","
            },
@@ -87,7 +100,7 @@ function deleteopt(id){
 
     $.ajax({
        type:'post',
-       url:'/tixing/delete',
+       url:'/knownset/delete',
        data:{
         ids:id+","
        },
@@ -105,27 +118,41 @@ function deleteopt(id){
        },
      })  
 }
-//搜索操作
-function Searchopt(){
-    var name=$("#txt_search").val();
-    window.document.location.href="/tixing/index?name="+encodeURIComponent(name) ;
-}
 </script>
 
-
+<style>
+.topleftv{
+  width: 30%;
+  height: 50px;
+  text-align: left;
+  display: flex;
+}
+.btn-default{
+  height: 32px;
+  width: 50px;
+}
+.topcenterv{
+  width: 30%;
+  text-align: center;
+  font-size: 32px;
+  line-height: 20px;
+  font-weight:700;
+}
+</style>
 
 <div class="col-sm-9 main" style='width:83%;'>
-  <h1 class="page-header">题型管理</h1>
+  <h1 class="page-header">知识点集合管理</h1>
   <div class="topoptv">
     <div class='topleftv'>
-        <input id="txt_search" class="form-control" placeholder="名称" type="text" style="width:135px;">
-        <button id="btn_search" type="button" class="searchbtn" style='height:34px;margin-left:10px;' onclick='Searchopt()'>查询</button>
+     <button type="button" class="btn btn-default" onclick='Back()'>返回</button>
     </div>
+    <div class='topcenterv' id='subjecttxt'>学科一</div>
     <div class='toprightv'>
      <button type="button" class="btn btn-success" onclick='Add()'>新建</button>
      <button type="button" class="btn btn-warning" onclick='Delete()'>批量删除</button>
     </div>   
   </div>
+
   <div class="row placeholders">
   <?= GridView::widget([
             'dataProvider' => $provider,

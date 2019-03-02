@@ -7,11 +7,12 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
-use app\models\Subject;
+use app\models\Knowledge;
+use app\models\Knownset;
 use app\models\Category;
 use yii\data\ActiveDataProvider;
 
-class CategoryController extends Controller
+class KnowledgeController extends Controller
 {
 
     /**
@@ -68,8 +69,16 @@ class CategoryController extends Controller
             Yii::$app->end();
         }
         $this->layout='@app/views/layouts/newlayout.php';
+        $categoryid= Yii::$app->request->get('categoryid');
+        $knownsetid= Yii::$app->request->get('knownsetid');
+        $query=Knowledge::find()->where([]);
+        if ($categoryid!='0') {
+            $query=$query->andWhere(['categoryid'=>(int)$categoryid]);
+        } elseif ($knownsetid!='0') {
+            $query=$query->andWhere(['knownsetid'=>(int)$knownsetid]);
+        }
         $provider = new ActiveDataProvider([
-            'query' => Category::find()->where([]),
+            'query' => $query,
             'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
             'pagination' => [
                 'pageSize' => 20,
@@ -80,19 +89,19 @@ class CategoryController extends Controller
             'provider' => $provider,
         ]);
     }
-       
-    //编辑学科
+      
+    //编辑知识点
     public function actionEdit()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
         $id= Yii::$app->request->get('id');
-        $model = Category::findOne($id);
+        $model = Knowledge::findOne($id);
         if (!empty($model)) {
             return $this->render('edit', [
                 'model' => $model,
             ]);
         } else {
-            $newmodel=new Category();
+            $newmodel=new Knowledge();
             return $this->render('edit', [
                 'model' => $newmodel,
             ]);
@@ -109,32 +118,103 @@ class CategoryController extends Controller
 
         $id= Yii::$app->request->get('id');
         $id=(int)$id;
+        //学科集合
+        $clist=Category::find()->where([])->all();
+        $chtml="<option value='0'>请选择</option>";
 
-        //通过id得到学科
-        $model=Category::find()->where(['id'=>$id])->one();
-        $subjects=Subject::find()->where([])->all();
+        //知识点集合
+        $klist=Knownset::find()->where([])->all();
+        $khtml="<option value='0'>请选择</option>";
+        //通过id得到知识点
+        $model=Knowledge::find()->where(['id'=>$id])->one();
         if (!empty($model)) {
-            $name=$model->name;
-            $select="";
-            foreach ($subjects as $k=>$v) {
-                if ($v->id==$model->subjectid) {
-                    $select=$select . "<option selected='selected' value='".$v->id."'>".$v->name."</option>";
+
+            //学科集合
+            foreach ($clist as $k=>$v) {
+                if ($v->id=$model->categoryid) {
+                    $chtml=$chtml ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
                 } else {
-                    $select=$select . "<option value='".$v->id."'>".$v->name."</option>";
+                    $chtml=$chtml ."<option value='".$v->id."' >".$v->name."</option>";
                 }
             }
-            return ['status'=>'success', 'name'=>$name,'select'=>$select];
-        } else {
-            $name="";
-            $select="";
-            foreach ($subjects as $k=>$v) {
-                $select=$select . "<option value='".$v->id."'>".$v->name."</option>";
+
+            //通过id得到知识点
+            foreach ($klist as $k=>$v) {
+                if ($v->id=$model->knownsetid) {
+                    $khtml=$khtml ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
+                } else {
+                    $khtml=$khtml ."<option value='".$v->id."' >".$v->name."</option>";
+                }
             }
-            return ['status'=>'success', 'name'=>$name,'select'=>$select];
+            return ['status'=>'success', 'data'=>$model,'chtml'=>$chtml,'khtml'=>$khtml];
+        } else {
+            $nmodel=new Knowledge();
+
+            //学科集合
+            foreach ($clist as $k=>$v) {
+                if ($v->id=$model->categoryid) {
+                    $chtml=$chtml ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
+                } else {
+                    $chtml=$chtml ."<option value='".$v->id."' >".$v->name."</option>";
+                }
+            }
+            return ['status'=>'success', 'data'=>$nmodel,'chtml'=>$chtml,'khtml'=>$khtml];
         }
     }
 
-    //保存学科的数据
+    //根据ID获取到全部的学科
+    public function actionCategory()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        $id= Yii::$app->request->get('id');
+        $id=(int)$id;
+
+        $html="<option value='0'>请选择</option>";
+        //全部的知识点
+        $clist=Category::find()->where([])->all();
+        foreach ($clist as $k=>$v) {
+            if ($v->id==$id) {
+                $html=$html ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
+            } else {
+                $html=$html ."<option value='".$v->id."' >".$v->name."</option>";
+            }
+        }
+        return ['status'=>'success', 'data'=>$html];
+    }
+
+    //根据ID获取到全部的知识点
+    public function actionKnownset()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        $id= Yii::$app->request->get('id');
+        $id=(int)$id;
+        $cid= Yii::$app->request->get('cid');
+        $cid=(int)$cid;
+
+        $html="<option value='0'>请选择</option>";
+
+
+        //通过id得到知识点
+        $clist=Knownset::find()->where(['categoryid'=>$cid])->all();
+        foreach ($clist as $k=>$v) {
+            if ($v->id==$id) {
+                $html=$html ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
+            } else {
+                $html=$html ."<option value='".$v->id."' >".$v->name."</option>";
+            }
+        }
+        return ['status'=>'success', 'data'=>$html];
+    }
+
+    //保存知识点的数据
     public function actionSave()
     {
         // 返回数据格式为 json
@@ -145,14 +225,15 @@ class CategoryController extends Controller
         $id= Yii::$app->request->get('id');
         $id=(int)$id;
         $name= Yii::$app->request->get('name');
-        $subjectid= Yii::$app->request->get('subjectid');
-        $subjectid=(int)$subjectid;
+        $categoryid= Yii::$app->request->get('categoryid');
+        $knownsetid= Yii::$app->request->get('knownsetid');
 
-        //通过id得到学科
-        $model=Category::find()->where(['id'=>$id])->one();
+        //通过id得到知识点
+        $model=Knowledge::find()->where(['id'=>$id])->one();
         if (!empty($model)) {
             $model->name=$name;
-            $model->subjectid=$subjectid;
+            $model->categoryid=$categoryid;
+            $model->knownsetid=$knownsetid;
             $model->update_at=time();
             $model->save();
 
@@ -162,9 +243,10 @@ class CategoryController extends Controller
                 return ['status'=>'success', 'message'=>'保存成功'];
             }
         } else {
-            $nmodel=new Category();
+            $nmodel=new Knowledge();
             $nmodel->name=$name;
-            $nmodel->subjectid=$subjectid;
+            $nmodel->categoryid=$categoryid;
+            $nmodel->knownsetid=$knownsetid;
             $nmodel->create_at=time();
             $nmodel->update_at=time();
             $nmodel->save();
@@ -176,7 +258,7 @@ class CategoryController extends Controller
             }
         }
     }
-    
+
     //删除数据
     public function actionDelete()
     {
@@ -187,10 +269,10 @@ class CategoryController extends Controller
 
         $ids= Yii::$app->request->post('ids');
         $delids=explode(',', $ids);
-        
+
         foreach ($delids as $k => $v) {
             if ($v!='') {
-                $delm= Category::findOne((int)$v);
+                $delm= Knowledge::findOne((int)$v);
                 $delm->delete();
             }
         }

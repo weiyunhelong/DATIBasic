@@ -21,7 +21,7 @@ class Managroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','isyear','isanswer','level','create_at', 'update_at'], 'integer'],
+            [['id','isyear','isanswer','level','status','create_at', 'update_at'], 'integer'],
             [['name','showname','rule','logo'], 'string', 'max' => 500],
         ];
     }
@@ -40,6 +40,7 @@ class Managroup extends \yii\db\ActiveRecord
             'logo' => 'LOGO',
             'rule' => '规则',
             'level' => '通过的等级',
+            'status' => '是否上线',
             'create_at' => '创建时间',
             'update_at' => '更新时间',
         ];        

@@ -21,7 +21,7 @@ class Managroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','tid','knownids','create_at', 'update_at'], 'integer'],
+            [['id','tid','mid','knownids','create_at', 'update_at'], 'integer'],
             [['name'], 'string', 'max' => 500],
         ];
     }
@@ -34,6 +34,7 @@ class Managroup extends \yii\db\ActiveRecord
         return [
             'id' => 'id',
             'tid' => 'tid',//推行官id
+            'mid'=> 'mid',//赛事id
             'name' => '名称',            
             'knownids' => '知识点',
             'create_at' => '创建时间',

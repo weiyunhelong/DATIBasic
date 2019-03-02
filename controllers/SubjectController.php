@@ -142,47 +142,7 @@ class SubjectController extends Controller
         ]);
     }
 
-    //根据ID获取到基本信息
-    public function actionPagedata()
-    {
-        // 返回数据格式为 json
-        //Yii::$app->response->format = Response::FORMAT_JSON;
-        // 关闭 csrf 验证
-        //$this->enableCsrfValidation = false;
     
-        $page= Yii::$app->request->post('page');
-        //$rows= Yii::$app->request->post('rows');
-        //$name= Yii::$app->request->post('name');
-        return ['status'=>'success', 'data'=>$page];
-
-        //通过id得到学科
-        $datalist=Subject::find();
-
-        //搜索查询
-        if($name!=''){
-            $datalist= $datalist->where(['like','name',$name]);
-        }
-            
-        //记录总数
-        $rowscount = $datalist->count();
-            
-        //分页
-        $datalist = $datalist->offset(($page - 1) * $rows)->limit($rows)->all();
-            
-        //分页数据
-        $list=[];
-        foreach($datalist as $k=>$v){
-            $list[$k]['ID']=$v["id"];
-            $list[$k]['Name']=$v["name"];
-            $list[$k]['CreateTime']=date('Y-m-d H:i:s',$v["update_at"]);
-        }
-
-        //分页数据
-        $result["total"]=$rowscount;
-        $result["rows"]= $list;
-
-        return ['status'=>'success', 'data'=>$result];
-    }
 
     //保存学科的数据
     public function actionSave()

@@ -37,11 +37,11 @@ function editopt(id,type){
                   ],
                   [
                     'label'=>'微信昵称',
-                    'attribute'=>'wxname',
+                    'attribute'=>'nickname',
                   ],
                   [
                     'label'=>'头像',
-                    'attribute'=>'touxiang',
+                    'attribute'=>'avatar',
                     'format' => [
                         'image', 
                          [
@@ -50,16 +50,16 @@ function editopt(id,type){
                          ]
                        ],
                         'value' => function ($model) { 
-                           return $model->touxiang; 
+                           return $model->avatar; 
                        }
                   ],
                   [
                     'label'=>'性别',
-                    'attribute'=>'sex',
+                    'attribute'=>'gender',
                     'value' => function($model) {
-                        if($model->sex==1){
+                        if($model->gender==1){
                             return "男";
-                        }else if($model->sex==2){
+                        }else if($model->gender==2){
                             return "女";
                         }else{
                             return "未知";
@@ -67,10 +67,10 @@ function editopt(id,type){
                     },
                   ],
                   [
-                    'label'=>'管理员',
-                    'attribute'=>'isadmin',                    
+                    'label'=>'推行官用户',
+                    'attribute'=>'topenid',                    
                     'value' => function($model) {
-                      if($model->isadmin==1){
+                      if($model->topenid!='-1'){
                           return "是";
                       }else{
                           return "否";
@@ -83,22 +83,7 @@ function editopt(id,type){
                     'value'=>function($m){
                        return date("Y-m-d H:i:s",$m->create_at);
                     }
-                  ],[
-                    'class' => 'yii\grid\ActionColumn',
-                    'header' => '操作', 
-                    'template' => ' {update}',//只需要展示删除{update}
-                    'headerOptions' => ['width' => '240'],
-                    'buttons' => [
-                        "update"=>function ($url, $model, $key) {//print_r($key);exit;
-                            if($model->isadmin==0){
-                              return Html::a('成为管理员', 'javascript:;', ['onclick'=>'editopt('.$model->id.',1)']);
-                            }else{
-                              return Html::a('普通用户', 'javascript:;', ['onclick'=>'editopt('.$model->id.',0)']);
-                            }                          
-                        }, 
-                        
-                    ],
-                ],
+                  ]
             ],
        ]) ?>
   </div>

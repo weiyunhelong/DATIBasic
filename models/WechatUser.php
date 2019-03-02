@@ -34,6 +34,8 @@ class WechatUser extends \yii\db\ActiveRecord
         return [
             'id' => 'id',
             'openid' => 'OpenId',
+            'topenid' => 'topenId',
+            'macthid' => 'macthid',
             'unionid' => 'UnionId',
             'nickname' => '昵称',
             'avatar' => '头像',

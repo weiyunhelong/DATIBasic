@@ -62,6 +62,13 @@ use app\models\Subject;
     parent.layer.closeAll();
   }
 </script>
+
+<style>
+  body{
+    padding-top: 0px;
+  }
+</style>
+
 <!--隐藏数据域-->
 <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
     <?=$form->field($model,'id')->hiddenInput([])->label(false); ?>          

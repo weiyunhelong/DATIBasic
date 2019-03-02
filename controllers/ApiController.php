@@ -20,7 +20,6 @@ use yii\httpclient\Client;
 use yii\web\Response;
 use yii\web\UploadedFile;
 
-
 //小程序工具类
 
 class ApiController extends \yii\web\Controller
@@ -36,8 +35,8 @@ class ApiController extends \yii\web\Controller
     // 0 小程序授权
     public function actionLogin()
     {
-        $code = Yii::$app->request->post('code');
-
+        $code = Yii::$app->request->get('code');
+        
         if (!$code) {
             return ['status' => 'fail', 'message' => 'code 不能为空'];
         }
@@ -45,14 +44,12 @@ class ApiController extends \yii\web\Controller
         //根据code查询，用户是否存在
         $data = $this->wechatAuth($code);
 
-        if (isset($data['openid']) && isset($data['session_key'])) 
-        {
+        if (isset($data['openid']) && isset($data['session_key'])) {
             $openid = $data['openid'];
             $model = WechatUser::findOne(['openid' => $openid]);
-            if (empty($model))
-            {      
+            if (empty($model)) {
                 return ['status' => 'success', 'openid' => $openid,  'chancenum' =>5,'isnew'=>true];
-            }else{
+            } else {
                 return ['status' => 'success', 'openid' => $openid,  'chancenum' => $model->chancenum,'isnew'=>false];
             }
         } else {
@@ -65,11 +62,12 @@ class ApiController extends \yii\web\Controller
     public function actionSaveuser()
     {
         $openid = Yii::$app->request->post('openid');
+        $topenid = Yii::$app->request->post('topenid');
         $nickname = Yii::$app->request->post('nickname');
         $gender = Yii::$app->request->post('gender');
         $avatar = Yii::$app->request->post('avatar');
         $country = Yii::$app->request->post('country');
-        $province = Yii::$app->request->post('province');        
+        $province = Yii::$app->request->post('province');
         $city = Yii::$app->request->post('city');
         
         //验证openid是否存在
@@ -80,41 +78,104 @@ class ApiController extends \yii\web\Controller
         //根据openid查询，用户是否存在
         $model = WechatUser::findOne(['openid' => $openid]);
         
-        if (empty($model)){ 
+        if (empty($model)) {
             $mmodel=new WechatUser();
             $mmodel->openid=$openid;
+            $mmodel->topenid=$topenid;
             $mmodel->unionid="-1";
             $mmodel->nickname=$nickname;
             $mmodel->gender=$gender;
             $mmodel->avatar=$avatar;
             $mmodel->country=$country;
             $mmodel->province=$province;
-            $mmodel->city=$city;         
-            $mmodel->chancenum=5;            
-            $mmodel->create_at= time();                  
-            $mmodel->update_at= time();    
+            $mmodel->city=$city;
+            $mmodel->chancenum=5;
+            $mmodel->create_at= time();
+            $mmodel->update_at= time();
             if ($mmodel->save()) {
                 return ['status' => 'success',  'message' => "微信用户创建成功"];
-            }else{
-                return $mmodel->getErrors();  
+            } else {
+                return $mmodel->getErrors();
             }
-        }else{
+        } else {
             $model->openid=$openid;
+            $model->topenid=$topenid;
             $model->nickname=$nickname;
             $model->gender=$gender;
             $model->avatar=$avatar;
             $model->country=$country;
             $model->province=$province;
-            $model->city=$city;                       
-            $model->update_at= time();  
+            $model->city=$city;
+            $model->update_at= time();
 
-        if ($model->save()) {
-            return ['status' => 'success',  'message' => "微信用户更新成功"];
-        }else{
-            return $model->getErrors();  
+            if ($model->save()) {
+                return ['status' => 'success',  'message' => "微信用户更新成功"];
+            } else {
+                return $model->getErrors();
+            }
         }
-      }
     }
+
+    //1-1 保存微信用户信息
+    public function actionSavewxuser()
+    {
+        $openid = Yii::$app->request->post('openid');
+        $topenid = Yii::$app->request->post('topenid');
+        $tid = Yii::$app->request->post('tid');//大赛的id，没有的值为0
+        $nickname = Yii::$app->request->post('nickname');
+        $gender = Yii::$app->request->post('gender');
+        $avatar = Yii::$app->request->post('avatar');
+        $country = Yii::$app->request->post('country');
+        $province = Yii::$app->request->post('province');
+        $city = Yii::$app->request->post('city');
+            
+        //验证openid是否存在
+        if (!$openid) {
+            return ['status' => 'fail', 'message' => 'openid不能为空'];
+        }
+            
+        //根据openid查询，用户是否存在
+        $model = WechatUser::findOne(['openid' => $openid]);
+            
+        if (empty($model)) {
+            $mmodel=new WechatUser();
+            $mmodel->openid=$openid;
+            $mmodel->topenid=$topenid;
+            $mmodel->unionid=$tid;
+            $mmodel->nickname=$nickname;
+            $mmodel->gender=$gender;
+            $mmodel->avatar=$avatar;
+            $mmodel->country=$country;
+            $mmodel->province=$province;
+            $mmodel->city=$city;
+            $mmodel->chancenum=5;
+            $mmodel->create_at= time();
+            $mmodel->update_at= time();
+            if ($mmodel->save()) {
+                return ['status' => 'success',  'message' => "微信用户创建成功"];
+            } else {
+                return $mmodel->getErrors();
+            }
+        } else {
+            $model->openid=$openid;
+            $model->topenid=$topenid;
+            $model->tid=$tid;
+            $model->nickname=$nickname;
+            $model->gender=$gender;
+            $model->avatar=$avatar;
+            $model->country=$country;
+            $model->province=$province;
+            $model->city=$city;
+            $model->update_at= time();
+    
+            if ($model->save()) {
+                return ['status' => 'success',  'message' => "微信用户更新成功"];
+            } else {
+                return $model->getErrors();
+            }
+        }
+    }
+
     //用户的答题次数减少
     public function actionUsechance()
     {
@@ -127,8 +188,8 @@ class ApiController extends \yii\web\Controller
 
         if ($model->save()) {
             return ['status' => 'success',  'message' => "答题次数减少"];
-        }else{
-            return $model->getErrors();  
+        } else {
+            return $model->getErrors();
         }
     }
 
@@ -137,6 +198,7 @@ class ApiController extends \yii\web\Controller
     {
         //答题记录
         $openid = Yii::$app->request->post('openid');
+        $topenid = Yii::$app->request->post('topenid');
         $tid= Yii::$app->request->post('tid');
         $ids= Yii::$app->request->post('ids');
         $rightnum= Yii::$app->request->post('rightnum');
@@ -145,6 +207,7 @@ class ApiController extends \yii\web\Controller
         //新增用户答题记录
         $record=new Record();
         $record->openid=$openid;
+        $record->topenid=$topenid;
         $record->tid=$tid;
         $record->ids=$ids;
         $record->rightnum=$rightnum;
@@ -153,8 +216,8 @@ class ApiController extends \yii\web\Controller
 
         if ($record->save()) {
             return ['status' => 'success',  'message' => "保存答题记录成功"];
-        }else{
-            return $model->getErrors();  
+        } else {
+            return $model->getErrors();
         }
     }
     
@@ -167,20 +230,37 @@ class ApiController extends \yii\web\Controller
         //新增用户答题记录
         $maxval=Record::find()->select('max(rightnum) as maxrightnum')->where(['=', 'openid', $openid])->asArray()->all();//一个二维数组c
         $level=$maxval[0]['maxrightnum'];
-        if($level==null){
+        if ($level==null) {
             $level=0;
+        } elseif ($level<6) {
+            return ['status' => 'success',  'data' => 1];
+        } elseif ($level>5&&$level<12) {
+            return ['status' => 'success',  'data' => 2];
+        } else {
+            return ['status' => 'success',  'data' => 3];
         }
-        
-        if($level<6){
-            return ['status' => 'success',  'data' => 1]; 
-        }else if($level>5&&$level<12){
-            return ['status' => 'success',  'data' => 2]; 
-        }else{
-            return ['status' => 'success',  'data' => 3]; 
-        }
-
     }
 
+    //获取推星官用户的最好成绩
+    public function actionGetresult()
+    {
+        //答题记录
+        $topenid = Yii::$app->request->post('topenid');
+        $tid = Yii::$app->request->post('matchid');
+
+        //新增用户答题记录
+        $maxval=Record::find()->orderBy('update_at DESC')->select('rightnum')->where(['=', 'topenid', $topenid], ['=','tid',$tid])->asArray()->all();//一个二维数组c
+        $level=$maxval[0]['rightnum'];
+        
+        if ($level==null) {
+            return ['status' => 'fail','data' => false];
+        } elseif ($level<12) {
+            return ['status' => 'fail','data' => false];
+        } else {
+            return ['status' => 'success','data' => true];
+        }
+    }
+  
     //获取推行官答题次数
     public function actionTxchance()
     {
@@ -190,13 +270,111 @@ class ApiController extends \yii\web\Controller
         //新增用户答题记录
         $wxuser=WechatUser::find()->where(['=', 'topenid', $topenid])->one();
        
-        if($wxuser==null){
-            return ['status' => 'success',  'data' => 5]; 
-        }else{
-            return ['status' => 'success',  'data' =>  $wxuser->chancenum]; 
+        if ($wxuser==null) {
+            return ['status' => 'success',  'data' => 5];
+        } else {
+            return ['status' => 'success',  'data' =>  $wxuser->chancenum];
         }
-
     }
+    
+    //获取用户的答题次数
+    public function actionGetchance()
+    {
+        //答题记录
+        $openid = Yii::$app->request->post('openid');
+          
+        //新增用户答题记录
+        $wxuser=WechatUser::find()->where(['=', 'openid', $openid])->one();//一个二维数组c
+       
+        
+        if ($wxuser==null) {
+            return ['status' => 'success','data' => 5];
+        } else {
+            return ['status' => 'success','data' => $wxuser->chancenum];
+        }
+    }
+  
+    //获取用户的答题题目
+    public function actionGetquestion()
+    {
+        //参数部分
+        $groupid = Yii::$app->request->post('groupid');//分组id
+         
+        //根据分组id获取分组
+        $managroup=Managroup::find()->where(['tid'=>$groupid])->one();
+        
+        if ($managroup==null) {
+            return ['status' => 'fail','message' => '查询不到相关数据!'];
+        } else {
+            //获取知识点,根据知识点获取题目
+            $kids=$managroup->knownids;
+            $kidarry=explode(',', $kids);
+            $tikus=[];
+            foreach ($kidarry as $key => $val) {
+                $tiobj=Tiku::find()->where(['like','knowids',[$val,',']])->asArray()->all();
+                $tikus=array_merge($tikus, $tiobj);
+            }
+            //根据题目，去除重复
+            $bb = array_unique($tikus);
+           
+            //根据困难程度[1-》易，2-》中,3-》难]，分别抽取5道题目
+            $yitikus=array_filter($bb, function ($var) {
+                return $var->difficult==1;
+            });
+            $zhongtikus=array_filter($bb, function ($var) {
+                return $var->difficult==2;
+            });          
+            $nantikus=array_filter($bb, function ($var) {
+                return $var->difficult==3;
+            });
+
+            //数组随机抽取5到题目
+            $ytk=shuffle($yitikus);
+            $ztk=shuffle($zhongtikus);
+            $ntk=shuffle($nantikus);
+        
+            //组成试卷
+            try{
+                $testpaper[0]=$ytk[0];
+                $testpaper[1]=$ytk[1];
+                $testpaper[2]=$ytk[2];
+                $testpaper[3]=$ytk[3];
+                $testpaper[4]=$ytk[4];
+    
+                $testpaper[5]=$ztk[0];
+                $testpaper[6]=$ztk[1];
+                $testpaper[7]=$ztk[2];
+                $testpaper[8]=$ztk[3];
+                $testpaper[9]=$ztk[4];
+    
+                $testpaper[10]=$ntk[0];
+                $testpaper[11]=$ntk[1];
+                $testpaper[12]=$ntk[2];
+                $testpaper[13]=$ntk[3];
+                $testpaper[14]=$ntk[4];
+
+                return ['status' => 'success','message' => '获取题目成功','data'=>$testpaper];
+            }catch(Exception $e){
+                return ['status' => 'fail','message' => '缺少题目!'];
+            }
+            
+        }
+    }
+      
+    //获取项目的详情
+    public function actionProdetail()
+    {
+        //最新的赛事
+        $magagame = Magagame::find()->orderBy('update_at desc')->where(['status'=>1])->one();
+          
+               
+        if ($magagame==null) {
+            return ['status' => 'fail','message' => '获取赛事详情失败'];
+        } else {
+            return ['status' => 'success','data' => $magagame];
+        }
+    }
+
     // 小程序码
     public function actionWxcode()
     {
@@ -211,7 +389,6 @@ class ApiController extends \yii\web\Controller
     // 消息模板
     public function actionNewsmuban()
     {
-
         $conf = Yii::$app->params['wx']['mini'];
         $app = new Application(['conf' => $conf]);
         $template = $app->driver("mini.template");
@@ -229,33 +406,33 @@ class ApiController extends \yii\web\Controller
         $extra 其他参数，都放到$extra数组中，比如page、color、emphasis_keyword
          */
         return ['status' => 'success', 'message' => '发送成功'];
-
     }
     
     //微信小程序支付功能
-    public function actionPayfor(){
-        $conf = Yii::$app->params['wx']['mini'];        
+    public function actionPayfor()
+    {
+        $conf = Yii::$app->params['wx']['mini'];
         $app = new Application(['conf' => $conf]);
         $payment = $app->driver("mini.pay");
         $money= Yii::$app->request->post('money'); // money的值
         $openid= Yii::$app->request->post('openid'); // openid的值
-        $out_trade_no=time() . mt_rand(1000,1000000);//订单号
+        $out_trade_no=time() . mt_rand(1000, 1000000);//订单号
         
         $param = array(
-            'appid' =>Yii::$app->params['appid'],//小程序id            
-            'body' =>"报名", //商品信息  
+            'appid' =>Yii::$app->params['appid'],//小程序id
+            'body' =>"报名", //商品信息
             'mch_id'=> Yii::$app->params['mch_id'],//商户id
             'notify_url'=>'notice/index.php', //回调通知地址
             'nonce_str'=> $this->createNoncestr(),
             'out_trade_no'=>$out_trade_no,//商户订单编号
             'total_fee'=>$money*100, //总金额
             'openid'=>$openid,//用户openid
-            'trade_type'=>'JSAPI',//交易类型  
-            'spbill_create_ip'=>"139.129.230.192",//终端ip           
+            'trade_type'=>'JSAPI',//交易类型
+            'spbill_create_ip'=>"139.129.230.192",//终端ip
             );
 
         //通过签名算法计算得出的签名值，详见签名生成算法
-        $result = $this->createJsBizPackage($openid, $money, $out_trade_no,'报名费',"notice/index.php", time());
+        $result = $this->createJsBizPackage($openid, $money, $out_trade_no, '报名费', "notice/index.php", time());
         //return $package;
         //生成小程序签名
         $config="appId=".Yii::$app->params['appid']."&nonceStr=".$this->createNoncestr()."&package=prepay_id=".$result['prepay_id']."&signType=MD5&timeStamp=".time()."&key=".Yii::$app->params['key'];
@@ -269,33 +446,34 @@ class ApiController extends \yii\web\Controller
     }
 
 
-   /*
+    /*
 * 对要发送到微信统一下单接口的数据进行签名
 */
-protected function getNewSign($Obj){
-    foreach ($Obj as $k => $v){
-        $param[$k] = $v;
+    protected function getNewSign($Obj)
+    {
+        foreach ($Obj as $k => $v) {
+            $param[$k] = $v;
+        }
+        //签名步骤一：按字典序排序参数
+        ksort($param);
+        $String = $this->formatBizQueryParaMap($param, false);
+        //签名步骤二：在string后加入KEY
+        $String = $String."&key=". Yii::$app->params['key'];
+        //签名步骤三：MD5加密
+        $String = md5($String);
+        //签名步骤四：所有字符转为大写
+        $result_ = strtoupper($String);
+        return $result_;
     }
-    //签名步骤一：按字典序排序参数
-    ksort($param);
-    $String = $this->formatBizQueryParaMap($param, false);
-    //签名步骤二：在string后加入KEY
-    $String = $String."&key=". Yii::$app->params['key'];
-    //签名步骤三：MD5加密
-    $String = md5($String);
-    //签名步骤四：所有字符转为大写
-    $result_ = strtoupper($String);
-    return $result_;
-}
     // 小程序支付
     public function actionWxpay()
     {
-        $conf = Yii::$app->params['wx']['mini'];        
+        $conf = Yii::$app->params['wx']['mini'];
         $app = new Application(['conf' => $conf]);
         $payment = $app->driver("mini.pay");
         $money= Yii::$app->request->post('money'); // money的值
         $openid= Yii::$app->request->post('openid'); // openid的值
-        $out_trade_no=time() . mt_rand(1000,1000000);//订单号
+        $out_trade_no=time() . mt_rand(1000, 1000000);//订单号
         $attributes = [
             'body' => "购买",
             'out_trade_no' => $out_trade_no,
@@ -354,7 +532,8 @@ protected function getNewSign($Obj){
         return $data;
     }
     //微信支付
-    public function createJsBizPackage($openid, $totalFee, $outTradeNo, $orderName, $notifyUrl, $timestamp){
+    public function createJsBizPackage($openid, $totalFee, $outTradeNo, $orderName, $notifyUrl, $timestamp)
+    {
         $config = array(
             'mch_id' => Yii::$app->params['mch_id'],
             'appid' =>  Yii::$app->params['appid'],
@@ -395,7 +574,8 @@ protected function getNewSign($Obj){
         $arr['paySign'] = self::getSign($arr, $config['key']);
         return $arr;
     }
-    public static function curlGet($url = '', $options = array()){
+    public static function curlGet($url = '', $options = array())
+    {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -409,7 +589,8 @@ protected function getNewSign($Obj){
         curl_close($ch);
         return $data;
     }
-    public static function curlPost($url = '', $postData = '', $options = array()){
+    public static function curlPost($url = '', $postData = '', $options = array())
+    {
         if (is_array($postData)) {
             $postData = http_build_query($postData);
         }
@@ -429,17 +610,19 @@ protected function getNewSign($Obj){
         curl_close($ch);
         return $data;
     }
-    public static function createNonceStr($length = 16){
+    public static function createNonceStr($length = 16)
+    {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $str = '';
-        for ($i = 0; $i<$length; $i++){
+        for ($i = 0; $i<$length; $i++) {
             $str .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
         }
         return $str;
     }
-    public static function arrayToXml($arr){
+    public static function arrayToXml($arr)
+    {
         $xml = "<xml>";
-        foreach ($arr as $key => $val){
+        foreach ($arr as $key => $val) {
             if (is_numeric($val)) {
                 $xml .= "<" . $key . ">" . $val . "</" . $key . ">";
             } else {
@@ -449,16 +632,18 @@ protected function getNewSign($Obj){
         $xml .= "</xml>";
         return $xml;
     }
-    public static function getSign($params, $key){
+    public static function getSign($params, $key)
+    {
         ksort($params, SORT_STRING);
         $unSignParaString = self::formatQueryParaMap($params, false);
         $signStr = strtoupper(md5($unSignParaString . "&key=" . $key));
         return $signStr;
     }
-    protected static function formatQueryParaMap($paraMap, $urlEncode = false){
+    protected static function formatQueryParaMap($paraMap, $urlEncode = false)
+    {
         $buff = "";
         ksort($paraMap);
-        foreach ($paraMap as $k => $v){
+        foreach ($paraMap as $k => $v) {
             if (null != $v && "null" != $v) {
                 if ($urlEncode) {
                     $v = urlencode($v);

@@ -5,14 +5,14 @@ namespace app\models;
 use Yii;
 
 
-class Knowset extends \yii\db\ActiveRecord
+class Knownset extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
-        return 'knowset';
+        return 'knownset';
     }
 
     /**

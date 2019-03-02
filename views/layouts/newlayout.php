@@ -120,9 +120,9 @@ use yii\widgets\Breadcrumbs;
           <li id="onemenu"><a href="/manage/index"       class='menu'>微信用户</a></li>
           <li id="twomenu"><a href="/subject/test?name="      class='menu'>真实科目管理</a></li>
           <li id="threemenu"><a href="/category/index"   class='menu'>学科管理</a></li>
-          <li id="fourmenu"><a href="/tixing/index"      class='menu'>题型管理</a></li>
-          <li id="fivemenu"><a href="/knowset/index"     class='menu'>知识点集合</a></li>
-          <li id="sixmenu"><a href="/knowledge/index"    class='menu'>知识点管理</a></li>
+          <li id="fourmenu"><a href="/tixing/index?name="      class='menu'>题型管理</a></li>
+          <li id="fivemenu"><a href="/knownset/index"     class='menu'>知识点集合</a></li>
+          <li id="sixmenu"><a href="/knowledge/index?categoryid=0&knownsetid=0"    class='menu'>知识点管理</a></li>
           <li id="sevenmenu"><a href="/tikumanage/index" class='menu'>习题管理</a></li>
           <li id="eightmenu"><a href="/tiku/index"       class='menu'>习题审核</a></li>
           <li id="ninemenu"><a href="/magagame/index"    class='menu'>赛事管理</a></li>
