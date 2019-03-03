@@ -21,8 +21,8 @@ class Tiku extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','tixingid','knowsetid','showtype','answer','difficult','create_at','update_at'], 'integer'],
-            [['knowids','title','imgpath','optionA','optionB','optionC','optionD','optionE','optionF','mark'], 'string', 'max' => 500],
+            [['id','categoryid','tixingid','knowsetid','showtype','answer','difficult','create_at','update_at'], 'integer'],
+            [['knownids','title','imgpath','optionA','optionB','optionC','optionD','optionE','optionF','mark'], 'string'],
         ];
     }
 
@@ -33,12 +33,13 @@ class Tiku extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'id',
+            'categoryid'=>'categoryid',
             'tixingid' => 'tixingid',  
             'knowsetid' => 'knowsetid',  
             'showtype' => 'showtype',     
             'answer' => 'answer',     
             'difficult' => 'difficult',     
-            'knowids' => 'knowids',    
+            'knownids' => 'knownids',    
             'title' => '题目',   
             'imgpath' => '图片',   
             'optionA' => '选项A',  
@@ -55,7 +56,7 @@ class Tiku extends \yii\db\ActiveRecord
 
     public function getTixing()
     {
-        return $this->hasOne(Tixing::className(), ['id' => 'tixingid']);
+        //return $this->hasOne(Tixing::className(), ['id' => 'tixingid']);
     }
 
     public function getKnowset()

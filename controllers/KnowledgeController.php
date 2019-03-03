@@ -69,12 +69,13 @@ class KnowledgeController extends Controller
             Yii::$app->end();
         }
         $this->layout='@app/views/layouts/newlayout.php';
-        $categoryid= Yii::$app->request->get('categoryid');
-        $knownsetid= Yii::$app->request->get('knownsetid');
+        $categoryid= Yii::$app->request->get('cid');
+        $knownsetid= Yii::$app->request->get('kid');
         $query=Knowledge::find()->where([]);
         if ($categoryid!='0') {
             $query=$query->andWhere(['categoryid'=>(int)$categoryid]);
-        } elseif ($knownsetid!='0') {
+        }
+        if ($knownsetid!='0') {
             $query=$query->andWhere(['knownsetid'=>(int)$knownsetid]);
         }
         $provider = new ActiveDataProvider([
@@ -131,7 +132,7 @@ class KnowledgeController extends Controller
 
             //学科集合
             foreach ($clist as $k=>$v) {
-                if ($v->id=$model->categoryid) {
+                if ($v->id==$model->categoryid) {
                     $chtml=$chtml ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
                 } else {
                     $chtml=$chtml ."<option value='".$v->id."' >".$v->name."</option>";
@@ -140,7 +141,7 @@ class KnowledgeController extends Controller
 
             //通过id得到知识点
             foreach ($klist as $k=>$v) {
-                if ($v->id=$model->knownsetid) {
+                if ($v->id==$model->knownsetid) {
                     $khtml=$khtml ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
                 } else {
                     $khtml=$khtml ."<option value='".$v->id."' >".$v->name."</option>";
@@ -152,11 +153,7 @@ class KnowledgeController extends Controller
 
             //学科集合
             foreach ($clist as $k=>$v) {
-                if ($v->id=$model->categoryid) {
-                    $chtml=$chtml ."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
-                } else {
-                    $chtml=$chtml ."<option value='".$v->id."' >".$v->name."</option>";
-                }
+                $chtml=$chtml ."<option value='".$v->id."' >".$v->name."</option>";
             }
             return ['status'=>'success', 'data'=>$nmodel,'chtml'=>$chtml,'khtml'=>$khtml];
         }

@@ -33,7 +33,7 @@ class Tixing extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'id',
-            'name' => '名称',           
+            'name' => '名称',        
             'create_at' => '创建时间',
             'update_at' => '更新时间'
         ];        

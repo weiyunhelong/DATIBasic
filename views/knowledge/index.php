@@ -80,11 +80,11 @@ function editopt(id){
    //iframe窗
   layer.open({
     type: 2,
-    title: '新建学科',
+    title: '编辑知识点',
     shadeClose: true,
     shade: 0.8,
     area: ['380px', '300px'],
-    content: '/subject/edit?id='+id //iframe的url
+    content: '/knowledge/edit?id='+id //iframe的url
   });
 }
 
@@ -93,11 +93,11 @@ function Add(){
   //iframe窗
   layer.open({
     type: 2,
-    title: '新建学科',
+    title: '添加知识点',
     shadeClose: true,
     shade: 0.8,
     area: ['380px', '300px'],
-    content: '/subject/edit?id=0' //iframe的url
+    content: '/knowledge/edit?id=0' //iframe的url
   });
 }
 
@@ -118,7 +118,7 @@ function Delete(){
 
          $.ajax({
            type:'post',
-           url:'/subject/delete',
+           url:'/knowledge/delete',
            data:{
             ids:ids+","
            },
@@ -148,7 +148,7 @@ function deleteopt(id){
 
     $.ajax({
        type:'post',
-       url:'/subject/delete',
+       url:'/knowledge/delete',
        data:{
         ids:id+","
        },

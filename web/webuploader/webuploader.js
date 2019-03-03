@@ -1195,11 +1195,12 @@
     
             init: function() {
                 var me = this;
-    
+                /*  
                 me.connectRuntime( me.options, function() {
                     me.exec('init');
                     me.trigger('ready');
                 });
+                */
             }
         });
     

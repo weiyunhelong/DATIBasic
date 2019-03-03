@@ -21,7 +21,7 @@ class Knowledge extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','categoryid','knowsetid','create_at', 'update_at'], 'integer'],
+            [['id','categoryid','knownsetid','create_at', 'update_at'], 'integer'],
             [['name'], 'string', 'max' => 500],
         ];
     }
@@ -34,7 +34,7 @@ class Knowledge extends \yii\db\ActiveRecord
         return [
             'id' => 'id',
             'categoryid' => 'categoryid',
-            'knowsetid' => 'knowsetid',
+            'knownsetid' => 'knownsetid',
             'name' => '知识点名称',
             'create_at' => '创建时间',
             'update_at' => '更新时间',

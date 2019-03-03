@@ -125,7 +125,7 @@ use yii\widgets\Breadcrumbs;
           <li id="sixmenu"><a href="/knowledge/index?categoryid=0&knownsetid=0"    class='menu'>知识点管理</a></li>
           <li id="sevenmenu"><a href="/tikumanage/index" class='menu'>习题管理</a></li>
           <li id="eightmenu"><a href="/tiku/index"       class='menu'>习题审核</a></li>
-          <li id="ninemenu"><a href="/magagame/index"    class='menu'>赛事管理</a></li>
+          <li id="ninemenu"><a href="/megagame/index"    class='menu'>赛事管理</a></li>
         </ul>
      </div>
 

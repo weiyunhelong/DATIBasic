@@ -35,7 +35,7 @@ return [
         //  小程序配置
         'mini'=>[
             //  基本配置
-            'app_id'  => 'wxfa6e140e888ec2b4', 
+            'app_id'  => 'wxfa6e140e888ec2b4',
             'secret'  => '013eec22017d1d67a1799a8a63b8d517',
             //  微信支付
             'payment' => [
@@ -43,5 +43,5 @@ return [
                 'key'           => '',
             ],
         ]
-    ]
+        ],
 ];
