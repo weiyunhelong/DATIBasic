@@ -10,6 +10,8 @@ use yii\filters\VerbFilter;
 use app\models\Tixing;
 use app\models\Tiku;
 use app\models\Category;
+use app\models\Knownset;
+use app\models\Knowledge;
 use yii\data\ActiveDataProvider;
 
 class TikuController extends Controller
@@ -57,11 +59,7 @@ class TikuController extends Controller
         ];
     }
 
-    /**
-     * Displays homepage.
-     *
-     * @return string
-     */
+    //页面
     public function actionIndex()
     {
         if (Yii::$app->user->isGuest) {
@@ -69,13 +67,9 @@ class TikuController extends Controller
             Yii::$app->end();
         }
         $this->layout='@app/views/layouts/newlayout.php';
-        $cid= Yii::$app->request->get('name');
-        $query=Tiku::find()->where([]);
-        if ($cid!='0') {
-            $query=$query->andFilterWhere(['categoryid'=> $cid]);
-        }
+        
         $provider = new ActiveDataProvider([
-            'query' => $query,
+            'query' => Tixing::find()->where([]),
             'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
             'pagination' => [
                 'pageSize' => 20,
@@ -86,7 +80,97 @@ class TikuController extends Controller
             'provider' => $provider,
         ]);
     }
+    /**
+     * Displays homepage.
+     *
+     * @return string
+     */
+
+    //获取所有的学科
+    public function actionSubject()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        //通过id得到题型
+        $models=Category::find()->where([])->all();
+        $html='';
+        foreach($models as $K=>$v){
+           $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+        }
+        return ['status'=>'success', 'data'=>$html];
+    }
+
+    //获取学科下所有的知识点集合和知识点
+    public function actionKnownset()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+        $cid= Yii::$app->request->get('cid');
+        $cid=(int)$cid;
+        $ztree=[];
+        //通过学科id得到知识点集合
+        $parentlist=Knownset::find()->where(['categoryid'=>$cid])->all();
+        foreach ($parentlist as $key =>$val) {
+            $ztree[$key]['id']=$val->id;
+            $ztree[$key]['pId']=0;
+            $ztree[$key]['name']=$val->name;
+            $ztree[$key]['@checked']=$key==0?true:false;
+            $ztree[$key]['isParent']=true;
+            $ztree[$key]['open']=$key==0?true:false;
+         
+            //通过知识点集合id得到知识点
+            $childlist=Knowledge::find()->where(['knownsetid'=>$val->id])->all();
+            foreach ($childlist as $k =>$v) {
+                $ztree[$key]['children'][$k]['id']=$v->id;
+                $ztree[$key]['children'][$k]['pId']=$val->id;
+                $ztree[$key]['children'][$k]['name']=$v->name;
+                $ztree[$key]['children'][$k]['@checked']=$k==0?true:false;
+                $ztree[$key]['children'][$k]['isParent']=false;
+                $ztree[$key]['children'][$k]['open']=false;
+            }
+        }
+        return $ztree;
+    }
+    //右侧的页面
+    public function actionList()
+    {
+        if (Yii::$app->user->isGuest) {
+            $this->redirect('/manage/login');
+            Yii::$app->end();
+        }
+        $this->layout='@app/views/layouts/layoutpage.php';
+        $cid= Yii::$app->request->get('cid');
+        $kid= Yii::$app->request->get('kid');
+        $ckid= Yii::$app->request->get('ckid');
+        $query=Tiku::find()->where([]);
+        if ($cid!='0') {
+            $query=$query->andFilterWhere(['categoryid'=>(int)$cid]);
+        }
+        if ($kid!='0') {
+            $query=$query->andFilterWhere(['knowsetid'=>(int)$kid]);
+        }
+        if ($ckid!='0') {
+            $query=$query->andFilterWhere(['like','knownids',$ckid.',']);
+        }
+        $provider = new ActiveDataProvider([
+            'query' => $query,
+            'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+        ]);
+
+        return $this->render('list', [
+            'provider' => $provider,
+        ]);
+    }
     
+
     /**
      * Displays homepage.
      *
@@ -132,18 +216,7 @@ class TikuController extends Controller
         }
     }
     
-    //学科列表
-    public function actionCategory()
-    {
-        // 返回数据格式为 json
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        // 关闭 csrf 验证
-        $this->enableCsrfValidation = false;
-
-        $categorys=Category::find()->where([''])->all();
-
-        return ['status'=>'success', 'data'=>$categorys];
-    }
+    
 
     //根据ID获取到基本信息
     public function actionInfo()
@@ -165,6 +238,8 @@ class TikuController extends Controller
             return ['status'=>'success', 'data'=>$nmodel];
         }
     }
+
+   
 
     //保存题型的数据
     public function actionSave()

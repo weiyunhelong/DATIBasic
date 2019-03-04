@@ -8,6 +8,9 @@ use app\models\Knowledge;
 
 /* @var $this yii\web\View */
 ?>
+
+
+
 <script type="text/javascript">
 $(function(){
     $("#eightmenu").addClass("active");
@@ -20,18 +23,47 @@ $(function(){
 function InitCategorySelect(){
     $.ajax({
        type:'get',
-       url:'/knowledge/category',
-       data:{
-        id:window.location.search.split('&')[0].split('=')[1]
-       },
+       url:'/tiku/subject',
+       data:{},
        success:function(res){
         
         console.log("学科下拉列表:");
         console.log(res);
+        $("#cselect").html(res.data);
 
-        $("#cselect").html(res.data);      
+        var setting = {
+          async: {
+          enable: true,
+          url:"/tiku/knownset?cid="+$('#cselect').val(), 
+          type: "get"
+        },
+        callback: {
+          onClick:ztreeOnClick,
+          beforeAsync: beforeAsync,
+          onAsyncSuccess: onAsyncSuccess,
+          onAsyncError: onAsyncError
+         }
+        };   
+        //初始化树形结构
+        $.fn.zTree.init($("#treeDemo"), setting);
+          $("#expandAllBtn").bind("click", expandAll);
+          $("#asyncAllBtn").bind("click", asyncAll);
+          $("#resetBtn").bind("click", reset);
        },
+      
      })  
+}
+ //树形结构的点击事件       
+ function ztreeOnClick(event, treeId, treeNode){
+   if (treeNode.id == "1") {
+      return;
+   }else{
+    $("#kid").val(treeNode.pId);
+    $("#ckid").val(treeNode.id);
+    var path="/tiku/list?cid="+$('#cselect').val()+'&kid='+treeNode.pId+'&ckid='+treeNode.id;
+    
+    $("#datalist").attr('src',path);
+   }
 }
 
 //编辑页面
@@ -49,7 +81,12 @@ function editopt(id){
 
 //新增页面
 function Add(){
-   window.document.location.href="/tiku/tixing";
+  var treeObj=$.fn.zTree.getZTreeObj("treeDemo"),
+  nodes=treeObj.getCheckedNodes(true),
+  kid=$("#kid").val(),
+  ckid=$("#ckid").val();
+  
+  window.document.location.href="/tiku/tixing?cid="+$("#cselect").val()+"&kid="+kid+'&ckid='+ckid;
 }
 
 //批量删除
@@ -123,13 +160,161 @@ function Searchopt(){
     window.document.location.href="/tiku/index?cid="+cid;}
 </script>
 
+<!--初始化树形结构-->
+<script type="text/javascript">
+	
+  var demoMsg = {
+    async:"正在进行异步加载，请等一会儿再点击...",
+    expandAllOver: "全部展开完毕",
+    asyncAllOver: "后台异步加载完毕",
+    asyncAll: "已经异步加载完毕，不再重新加载",
+    expandAll: "已经异步加载完毕，使用 expandAll 方法"
+  }
+
+
+  function filter(treeId, parentNode, childNodes) {
+    if (!childNodes) return null;
+    for (var i=0, l=childNodes.length; i<l; i++) {
+      childNodes[i].name = childNodes[i].name.replace(/\.n/g, '.');
+    }
+    return childNodes;
+  }
+
+  function beforeAsync() {
+    curAsyncCount++;
+  }
+  
+  function onAsyncSuccess(event, treeId, treeNode, msg) {
+    curAsyncCount--;
+    if (curStatus == "expand") {
+      expandNodes(treeNode.children);
+    } else if (curStatus == "async") {
+      asyncNodes(treeNode.children);
+    }
+
+    if (curAsyncCount <= 0) {
+      if (curStatus != "init" && curStatus != "") {
+        $("#demoMsg").text((curStatus == "expand") ? demoMsg.expandAllOver : demoMsg.asyncAllOver);
+        asyncForAll = true;
+      }
+      curStatus = "";
+    }
+
+    //默认点击第一个子节点
+    var roletree = $.fn.zTree.getZTreeObj("treeDemo");
+    var node = roletree.getNodes()[0];
+    console.log("第一个节点:");
+    console.log(node);
+    $("#kid").val(node.id);
+    $("#ckid").val(node.children[0].id);
+    var path="/tiku/list?cid="+$('#cselect').val()+'&kid='+node.id+'&ckid='+node.children[0].id;
+    
+    $("#datalist").attr('src',path);
+  }
+
+  function onAsyncError(event, treeId, treeNode, XMLHttpRequest, textStatus, errorThrown) {
+    curAsyncCount--;
+
+    if (curAsyncCount <= 0) {
+      curStatus = "";
+      if (treeNode!=null) asyncForAll = true;
+    }
+  }
+
+  var curStatus = "init", curAsyncCount = 0, asyncForAll = false,
+  goAsync = false;
+  function expandAll() {
+    if (!check()) {
+      return;
+    }
+    var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+    if (asyncForAll) {
+      $("#demoMsg").text(demoMsg.expandAll);
+      zTree.expandAll(true);
+    } else {
+      expandNodes(zTree.getNodes());
+      if (!goAsync) {
+        $("#demoMsg").text(demoMsg.expandAll);
+        curStatus = "";
+      }
+    }
+  }
+  function expandNodes(nodes) {
+    if (!nodes) return;
+    curStatus = "expand";
+    var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+    for (var i=0, l=nodes.length; i<l; i++) {
+      zTree.expandNode(nodes[i], true, false, false);
+      if (nodes[i].isParent && nodes[i].zAsync) {
+        expandNodes(nodes[i].children);
+      } else {
+        goAsync = true;
+      }
+    }
+  }
+
+  function asyncAll() {
+    if (!check()) {
+      return;
+    }
+    var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+    if (asyncForAll) {
+      $("#demoMsg").text(demoMsg.asyncAll);
+    } else {
+      asyncNodes(zTree.getNodes());
+      if (!goAsync) {
+        $("#demoMsg").text(demoMsg.asyncAll);
+        curStatus = "";
+      }
+    }
+  }
+  function asyncNodes(nodes) {
+    if (!nodes) return;
+    curStatus = "async";
+    var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+    for (var i=0, l=nodes.length; i<l; i++) {
+      if (nodes[i].isParent && nodes[i].zAsync) {
+        asyncNodes(nodes[i].children);
+      } else {
+        goAsync = true;
+        zTree.reAsyncChildNodes(nodes[i], "refresh", true);
+      }
+    }
+  }
+
+  function reset() {
+    if (!check()) {
+      return;
+    }
+    asyncForAll = false;
+    goAsync = false;
+    $("#demoMsg").text("");
+    $.fn.zTree.init($("#treeDemo"), setting);
+  }
+
+  function check() {
+    if (curAsyncCount > 0) {
+      $("#demoMsg").text(demoMsg.async);
+      return false;
+    }
+    return true;
+  }
+
+  $(document).ready(function(){
+    
+  });
+  
+</script>
+
+<link href="/css/shu.css"  rel="stylesheet" />
+
+<input type="text" id="kid" style='display:none;' value=''/>
+<input type="text" id="ckid" style='display:none;' value=''/>
 
 <div class="col-sm-9 main" style='width:83%;'>
-  <h1 class="page-header">题库审核</h1>
+  <h1 class="page-header">题库管理</h1>
   <div class="topoptv">
     <div class='topleftv'>
-        <select id="cselect" class="form-control" onchange='cselectopt()' style='width:100px;'></select>
-        <button id="btn_search" type="button" class="searchbtn" style='height:34px;margin-left:10px;' onclick='Searchopt()'>查询</button>
     </div>
     <div class='toprightv'>
      <button type="button" class="btn btn-success" onclick='Add()'>新建</button>
@@ -137,83 +322,14 @@ function Searchopt(){
     </div>   
   </div>
   <div class="row placeholders">
-  <?= GridView::widget([
-            'dataProvider' => $provider,
-            'id' => 'grid',
-            'columns' => [
-                  [
-                    'class' => 'yii\grid\CheckboxColumn',
-                  ],
-                  [
-                    'label'=>'ID',
-                    'attribute'=>'id',
-                  ],
-                  [
-                    'label'=>'题目',
-                    'attribute'=>'title',
-                  ],
-                  [
-                    'label'=>'答案A',
-                    'attribute'=>'optionA',
-                  ],
-                  [
-                    'label'=>'答案B',
-                    'attribute'=>'optionB',
-                  ],
-                  [
-                    'label'=>'答案C',
-                    'attribute'=>'optionC',
-                  ],
-                  [
-                    'label'=>'答案D',
-                    'attribute'=>'optionD',
-                  ],
-                  [
-                    'label'=>'正确答案',
-                    'attribute'=>'answer',
-                    'value'=>function ($m) {
-                        if ($m->answer==1) {
-                            return "A";
-                        } elseif ($m->answer==2) {
-                            return "B";
-                        } elseif ($m->answer==3) {
-                            return "C";
-                        } elseif ($m->answer==4) {
-                            return "D";
-                        } elseif ($m->answer==5) {
-                            return "E";
-                        } elseif ($m->answer==6) {
-                            return "F";
-                        }
-                    }
-                  ],
-                  [
-                    'label'=>'难易程度',
-                    'attribute' => 'difficult',
-                    'value'=>function ($m) {
-                        if ($m->difficult==1) {
-                            return "易";
-                        } elseif ($m->difficult==2) {
-                            return "中";
-                        } elseif ($m->difficult==3) {
-                            return "难";
-                        }
-                    }
-                  ],[
-                    'class' => 'yii\grid\ActionColumn',
-                    'header' => '操作',
-                    'template' => ' {update} {delete}',//只需要展示删除{update}
-                    'headerOptions' => ['width' => '240'],
-                    'buttons' => [
-                        "update"=>function ($url, $model, $key) {//print_r($key);exit;
-                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->name.'")']);
-                        },
-                        'delete' => function ($url, $model, $key) {
-                            return Html::a('删除', 'javascript:;', ['onclick'=>'deleteopt('.$model->id.')']);
-                        },
-                    ],
-                ],
-            ],
-       ]) ?>
+   <div class="col-sm-3 ztreev">
+     <select name="" id="cselect" class='form-control'></select>
+     <div class="zTreeDemoBackground ztree">
+	  	<ul id="treeDemo" class="ztree"></ul>
+   	</div>
+   </div> 
+   <div class="col-sm-9" style='padding-right: 0;'>
+     <iframe src="" frameborder="0" id="datalist" style='width:100%;height:80vh;'></iframe>
+   </div>  
   </div>
 </div
