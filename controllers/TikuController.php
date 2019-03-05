@@ -136,6 +136,7 @@ class TikuController extends Controller
         }
         return $ztree;
     }
+
     //右侧的页面
     public function actionList()
     {
@@ -197,6 +198,22 @@ class TikuController extends Controller
             'provider' => $provider,
         ]);
     }
+    
+    //获取所有的知识点集合
+    public function actionGetks()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        $cid= Yii::$app->request->get('id');
+
+        $klist=Knownset::find()->where(['cid'=>$cid])->all();
+    
+        return ['status'=>'success', 'data'=>$klist];
+    }
+    
 
     //编辑题型
     public function actionEdit()
@@ -215,8 +232,7 @@ class TikuController extends Controller
             ]);
         }
     }
-    
-    
+        
 
     //根据ID获取到基本信息
     public function actionInfo()
@@ -240,7 +256,6 @@ class TikuController extends Controller
     }
 
    
-
     //保存题型的数据
     public function actionSave()
     {
@@ -344,6 +359,7 @@ class TikuController extends Controller
         }
         return ['status'=>'success', 'message'=>'保存成功'];
     }
+    
     /**
      * Login action.
      *

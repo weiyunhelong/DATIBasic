@@ -21,7 +21,7 @@ class WechatUser extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','gender','chancenum','create_at', 'update_at'], 'integer'],
+            [['id','matchid','gender','chancenum','create_at', 'update_at'], 'integer'],
             [['openid','unionid','nickname', 'avatar','country','province','city'], 'string', 'max' => 500],
         ];
     }
@@ -35,7 +35,7 @@ class WechatUser extends \yii\db\ActiveRecord
             'id' => 'id',
             'openid' => 'OpenId',
             'topenid' => 'topenId',
-            'macthid' => 'macthid',
+            'matchid' => 'matchid',
             'unionid' => 'UnionId',
             'nickname' => '昵称',
             'avatar' => '头像',

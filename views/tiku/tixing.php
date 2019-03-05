@@ -23,7 +23,7 @@ function editopt(id){
     shadeClose: true,
     shade: 0.8,
     area: ['550px', '600px'],
-    content: "/tiku/edit"+params+'&tixing='+id//iframe的url
+    content: "/tiku/edit/"+params+'&tixing='+id//iframe的url
   });
 }
 

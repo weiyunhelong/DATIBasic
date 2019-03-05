@@ -141,7 +141,8 @@ class ApiController extends \yii\web\Controller
             $mmodel=new WechatUser();
             $mmodel->openid=$openid;
             $mmodel->topenid=$topenid;
-            $mmodel->unionid=$tid;
+            $mmodel->matchid=$tid;
+            $mmodel->unionid="-1";
             $mmodel->nickname=$nickname;
             $mmodel->gender=$gender;
             $mmodel->avatar=$avatar;
@@ -159,7 +160,7 @@ class ApiController extends \yii\web\Controller
         } else {
             $model->openid=$openid;
             $model->topenid=$topenid;
-            $model->tid=$tid;
+            $model->matchid=$tid;
             $model->nickname=$nickname;
             $model->gender=$gender;
             $model->avatar=$avatar;

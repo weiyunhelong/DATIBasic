@@ -26,11 +26,6 @@ use app\models\Tixing;
     });
   });
   
-  //添加分组
-  function addgroup(){
-      $html="";
-
-  }
   //保存数据
   function saveopt(){
      //得到参数

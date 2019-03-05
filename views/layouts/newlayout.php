@@ -31,8 +31,7 @@ use yii\widgets\Breadcrumbs;
 <script src="/zTree/js/jquery.ztree.core.js" type="text/javascript"></script>
 <script src="/zTree/js/jquery.ztree.excheck.js" type="text/javascript"></script>
 <script src="/zTree/js/jquery.ztree.exhide.js" type="text/javascript"></script>
-<link href="/zTree/css/zTreeStyle/zTreeStyle.css" />
-<link href="/zTree/css/demo.css" />
+
     <style type="text/css">
      .nav .nav-sidebar li a{
          height:50px;
