@@ -14,7 +14,7 @@ use app\models\Knownset;
 use app\models\Knowledge;
 use yii\data\ActiveDataProvider;
 
-class TikuemanagController extends Controller
+class TikumanageController extends Controller
 {
 
     /**
@@ -91,19 +91,25 @@ class TikuemanagController extends Controller
      * @return string
      */
 
-    //获取所有的学科
+    //获取所有的有分组的大赛
     public function actionCategory()
     {
         // 返回数据格式为 json
         Yii::$app->response->format = Response::FORMAT_JSON;
         // 关闭 csrf 验证
         $this->enableCsrfValidation = false;
+        $cid= Yii::$app->request->get('cid');
+        $cid=(int)$cid;
 
         //通过id得到题型
         $models=Category::find()->where([])->all();
         $html='';
         foreach($models as $K=>$v){
-           $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+           if($v->id==$cid) {
+             $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
+           }else{   
+             $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+           }
         }
         return ['status'=>'success', 'data'=>$html];
     }

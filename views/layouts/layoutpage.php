@@ -28,6 +28,14 @@ use yii\widgets\Breadcrumbs;
     <link href="/webuploader/webuploader.css" rel="stylesheet" />
     <script src="/webuploader/webuploader.js"></script>
     <link href="/css/upload.css" rel="stylesheet" />
+     
+    <!--树形结构的数据-->
+    <!--<script src="/zTree/js/jquery-1.4.4.min.js" type="text/javascript"></script>-->
+    <script src="/zTree/js/jquery.ztree.all.js" type="text/javascript"></script>
+    <script src="/zTree/js/jquery.ztree.core.js" type="text/javascript"></script>
+    <script src="/zTree/js/jquery.ztree.excheck.js" type="text/javascript"></script>
+    <script src="/zTree/js/jquery.ztree.exhide.js" type="text/javascript"></script>
+
 </head>
 <body>
 <?php $this->beginBody() ?>    

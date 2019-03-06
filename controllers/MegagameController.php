@@ -224,42 +224,32 @@ class MegagameController extends Controller
     }
     
     //保存分组的数据
-    public function actionGroup()
+    public function actionStatus()
     {
         // 返回数据格式为 json
         Yii::$app->response->format = Response::FORMAT_JSON;
         // 关闭 csrf 验证
         $this->enableCsrfValidation = false;
 
-        $id= Yii::$app->request->get('id');
+        $id= Yii::$app->request->post('id');
         $id=(int)$id;
-        $name= Yii::$app->request->get('name');
-
-        //通过id得到题型
+        $status= Yii::$app->request->post('status');
+        $status=(int)$status;
         $model=Megagame::find()->where(['id'=>$id])->one();
-        if (!empty($model)) {
-            $model->name=$name;
-            $model->update_at=time();
-            $model->save();
-
-            if (!$model->save()) {
-                return ['status'=>'fail', 'message'=>'保存失败'];
-            } else {
-                return ['status'=>'success', 'message'=>'保存成功'];
-            }
-        } else {
-            $nmodel=new Megagame();
-            $nmodel->name=$name;
-            $nmodel->create_at=time();
-            $nmodel->update_at=time();
-            $nmodel->save();
-
-            if (!$nmodel->save()) {
-                return ['status'=>'fail', 'message'=>'保存失败'];
-            } else {
-                return ['status'=>'success', 'message'=>'保存成功'];
+        //return $model;
+        //更新开始
+        $mlist=Megagame::find()->where([])->all();
+        foreach($mlist as $k=>$v){
+            if($v->status==1){
+                $v->status=0;
+                $v->save();
             }
         }
+        $model->status=1;
+        if ($model->save()) {
+            return ['status' => 'success', 'message' =>'保存数据成功'];
+        }
+        return $model->getErrors();
     }
     //删除数据
     public function actionDelete()
@@ -282,22 +272,6 @@ class MegagameController extends Controller
         return ['status'=>'success', 'message'=>'保存成功'];
     }
 
-    //更改赛事状态
-    public function actionUpdate()
-    {
-        // 返回数据格式为 json
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        // 关闭 csrf 验证
-        $this->enableCsrfValidation = false;
-    
-        $id= Yii::$app->request->post('id');
-        $status= Yii::$app->request->post('status');
-    
-        $delm= Megagame::findOne((int)$v);
-        $delm->status=$status;
-        $delm->save();
-        return ['status'=>'success', 'message'=>'保存成功'];
-    }
     /**
      * Login action.
      *

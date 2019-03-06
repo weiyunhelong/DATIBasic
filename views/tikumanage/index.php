@@ -17,15 +17,21 @@ $(function(){
 
 //获取学科的下拉列表
 function  InitCategory(){
+  var params=window.location.search;
+  var names=params.split('&')[0];
+  var cid=params.split('=')[1];
+
    $.ajax({
-    type:'post',
+    type:'get',
     url:'/tikumanage/category',
-    data:'',
+    data:{
+      cid:cid
+    },
     success:function(res){
       console.log("学科列表:");
       console.log(res);
       
-      $("#cselect").html(res.data.data);
+      $("#cselect").html(res.data);
     }
   })
 }
@@ -114,7 +120,7 @@ $.ajax({
 
 <style>
 .topleftv{
-  width: 30%;
+  width: 60%;
   height: 50px;
   text-align: left;
   display: flex;
@@ -137,7 +143,7 @@ $.ajax({
   <h1 class="page-header">习题审核</h1>
   <div class="topoptv">
     <div class='topleftv'>
-      <select id="cselect" class="form-control" style='width:100px;'></select>
+      <select id="cselect" class="form-control" style='width:150px;'></select>
       <button id="btn_search" type="button" class="searchbtn" style='height:34px;margin-left:10px;' onclick='Searchopt()'>查询</button>
    </div>
     <div class='toprightv'>

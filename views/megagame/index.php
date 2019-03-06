@@ -8,14 +8,14 @@ use yii\grid\GridView;
 <script type="text/javascript">
 $(function(){
   $("#ninemenu").addClass("active");
+
+  
 })
 
 //编辑页面
 function editopt(id){
-   //iframe窗
-   window.document.location.href="/megagame/add?id="+id;
-
-     //iframe窗
+ 
+  //iframe窗
   layer.open({
     type: 2,
     title: '查看大赛',
@@ -104,6 +104,26 @@ function deleteopt(id){
        },
      })  
 }
+
+//更改大赛的状态
+function statusopt(id,status){
+   $.ajax({
+       type:'post',
+       url:'/megagame/status',
+       data:{
+        id:id,
+        status:status
+       },
+       success:function(res){
+
+        if(res.status=='success'){           
+            window.document.location.reload();
+        }else{
+            layer.msg("更新失败！");
+        }
+       },
+     })  
+}
 </script>
 
 
@@ -159,18 +179,35 @@ function deleteopt(id){
                     'value'=>function ($m) {
                         return date("Y-m-d H:i:s", $m->create_at);
                     }
+                  ],
+                  [
+                    'class' => 'yii\grid\ActionColumn',
+                    'header' => '更改状态',
+                    'template' => '{update}',//只需要展示删除{update}
+                    'headerOptions' => ['width' => '100'],
+                    'buttons' => [
+                        "update"=>function ($url, $model, $key) {//print_r($key);exit;
+                          if($model->status==-1){
+                            return "已删除";
+                          }else if($model->status==0){
+                            return Html::a('上线', 'javascript:;', ['onclick'=>'statusopt('.$model->id.',1)']);
+                          }else if($model->status==1){
+                            return Html::a('结束', 'javascript:;', ['onclick'=>'statusopt('.$model->id.',2)']);
+                          }
+                        },                        
+                    ],
                   ],[
                     'class' => 'yii\grid\ActionColumn',
                     'header' => '操作',
                     'template' => ' {update} {delete}',//只需要展示删除{update}
-                    'headerOptions' => ['width' => '240'],
+                    'headerOptions' => ['width' => '100'],
                     'buttons' => [
                         "update"=>function ($url, $model, $key) {//print_r($key);exit;
                             return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->name.'")']);
                         },
                         'delete' => function ($url, $model, $key) {
                             return Html::a('删除', 'javascript:;', ['onclick'=>'deleteopt('.$model->id.')']);
-                        },
+                        }                      
                     ],
                 ],
             ],

@@ -21,8 +21,8 @@ class Megagroup extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id','tid','mid','knownids','create_at', 'update_at'], 'integer'],
-            [['name'], 'string', 'max' => 500],
+            [['id','tid','mid','status','create_at', 'update_at'], 'integer'],
+            [['name','knownids'], 'string', 'max' => 500],
         ];
     }
 
@@ -37,6 +37,7 @@ class Megagroup extends \yii\db\ActiveRecord
             'mid'=> 'mid',//赛事id
             'name' => '名称',            
             'knownids' => '知识点',
+            'status' => '状态值',
             'create_at' => '创建时间',
             'update_at' => '更新时间',
         ];        

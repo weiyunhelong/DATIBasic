@@ -7,6 +7,8 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
+use app\models\Knownset;
+use app\models\Knowledge;
 use app\models\Megagame;
 use app\models\Megagroup;
 use yii\data\ActiveDataProvider;
@@ -82,9 +84,14 @@ class MegagroupController extends Controller
             Yii::$app->end();
         }
         $this->layout='@app/views/layouts/newlayout.php';
-       
+        $mid= Yii::$app->request->get('mid');
+        $mid=(int)$mid;
+        $query=Megagroup::find()->where(['<>','status',-1]);
+        if ($mid!=0) {
+            $query=$query ->andFilterWhere(['mid'=>$mid]);
+        }
         $provider = new ActiveDataProvider([
-            'query' => Megagroup::find()->where(['<>','status',-1]),
+            'query' => $query,
             'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
             'pagination' => [
                 'pageSize' => 20,
@@ -114,7 +121,7 @@ class MegagroupController extends Controller
         }
     }
     
-    //新增题型
+    //新增
     public function actionAdd()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
@@ -151,7 +158,7 @@ class MegagroupController extends Controller
         //通过id得到
         $model=Megagroup::find()->where(['id'=>$id])->one();
         //获取分组的数据
-        $groups=Megagroup::find()->where([])->all();
+        $groups=Megagame::find()->where(['isyear'=>1])->all();
         $phtml='';
 
         if (!empty($model)) {
@@ -168,20 +175,31 @@ class MegagroupController extends Controller
             foreach ($groups as $k=>$v) {
                 $phtml=$phtml . "<option value='".$v->id ."'>".$v->name."</option>";
             }
-            return ['status'=>'success', 'data'=>$nmodel,'groups'=>[]];
+            return ['status'=>'success', 'data'=>$nmodel,'phtml'=>$phtml];
         }
     }
 
     //有分组的大赛
-    public function actionMagagame()
+    public function actionMegagame()
     {
         // 返回数据格式为 json
         Yii::$app->response->format = Response::FORMAT_JSON;
         // 关闭 csrf 验证
         $this->enableCsrfValidation = false;
-       
-        $list=Magagame::find()->where(['isyear'=>1])->all();
-        return ['status'=>'success', 'data'=>$list];
+        
+        $mid= Yii::$app->request->get('mid');
+        $mid=(int)$mid;
+        $list=Megagame::find()->where(['isyear'=>1])->all();
+
+        $html='<option value="0">全部</option>';
+        foreach ($list as $k=>$v) {
+            if ($mid==$v->id) {
+                $html=$html."<option value='".$v->id."' selected='selected'>".$v->name."</option>";
+            } else {
+                $html=$html."<option value='".$v->id."' >".$v->name."</option>";
+            }
+        }
+        return ['status'=>'success', 'data'=>$html];
     }
 
     //知识点的树形结构
@@ -191,18 +209,22 @@ class MegagroupController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         // 关闭 csrf 验证
         $this->enableCsrfValidation = false;
-        $cid= Yii::$app->request->get('cid');
-        $cid=(int)$cid;
+        $ids= Yii::$app->request->get('ids');
+        $chkids=[];
+        if(!empty($ids)){
+            $chkids=explode(',',$ids);
+        }
+        //return $chkids;
         $ztree=[];
         //通过学科id得到知识点集合
-        $parentlist=Knownset::find()->where(['categoryid'=>$cid])->all();
+        $parentlist=Knownset::find()->where([])->all();
         foreach ($parentlist as $key =>$val) {
             $ztree[$key]['id']=$val->id;
             $ztree[$key]['pId']=0;
             $ztree[$key]['name']=$val->name;
-            $ztree[$key]['@checked']=$key==0?true:false;
+            $ztree[$key]['checked']=$key==0?true:false;
             $ztree[$key]['isParent']=true;
-            $ztree[$key]['open']=$key==0?true:false;
+            $ztree[$key]['open']=true;
          
             //通过知识点集合id得到知识点
             $childlist=Knowledge::find()->where(['knownsetid'=>$val->id])->all();
@@ -210,9 +232,14 @@ class MegagroupController extends Controller
                 $ztree[$key]['children'][$k]['id']=$v->id;
                 $ztree[$key]['children'][$k]['pId']=$val->id;
                 $ztree[$key]['children'][$k]['name']=$v->name;
-                $ztree[$key]['children'][$k]['@checked']=$k==0?true:false;
+                
+                foreach($chkids as $ck =>$cv){
+                   if($cv==$v->id){
+                      $ztree[$key]['children'][$k]['checked']=true;
+                   }
+                }
                 $ztree[$key]['children'][$k]['isParent']=false;
-                $ztree[$key]['children'][$k]['open']=false;
+                $ztree[$key]['children'][$k]['open']=true;
             }
         }
         return $ztree;
@@ -227,43 +254,38 @@ class MegagroupController extends Controller
         $this->enableCsrfValidation = false;
 
         $id= Yii::$app->request->post('id');
-        $id=(int)$id;
         $name= Yii::$app->request->post('name');
         $mid= Yii::$app->request->post('mid');
         $tid= Yii::$app->request->post('tid');
         $kids= Yii::$app->request->post('kids');
-       
-      
+
         //通过id得到题型
         $model=Megagroup::find()->where(['id'=>$id])->one();
         if (!empty($model)) {
             $model->name=$name;
-            $model->mid=$mid;
-            $model->tid=$tid;
+            $model->mid=(int)$mid;
+            $model->tid=(int)$tid;
             $model->knownids=$kids;
             $model->update_at=time();
-            $model->save();
 
-            if (!$model->save()) {
-                return ['status'=>'fail', 'message'=>'保存失败'];
-            } else {
-                return ['status'=>'success', 'message'=>'保存成功'];
+            if ($model->save()) {
+                return ['status' => 'success', 'message' =>'保存数据成功'];
             }
+            return $model->getErrors();
         } else {
             $nmodel=new Megagroup();
             $nmodel->name=$name;
-            $nmodel->mid=$mid;
-            $nmodel->tid=$tid;
+            $nmodel->mid=(int)$mid;
+            $nmodel->tid=(int)$tid;
             $nmodel->knownids=$kids;
             $nmodel->create_at=time();
             $nmodel->update_at=time();
-            $nmodel->save();
+            $nmodel->status=0;
 
-            if (!$nmodel->save()) {
-                return ['status'=>'fail', 'message'=>'保存失败'];
-            } else {
-                return ['status'=>'success', 'message'=>'保存成功'];
+            if ($nmodel->save()) {
+                return ['status' => 'success', 'message' =>'保存数据成功'];
             }
+            return $nmodel->getErrors();
         }
     }
     
