@@ -11,21 +11,31 @@ use app\models\Tixing;
 //上传验证
 
   $(function(){    
-    $("#ninemenu").addClass("active"); 
-    
-    $('input[name=i]').change(function() {
-        if (this.value == '1') {
-           $("#groupv").show();
-           $("#addbtn").show();
-        }
-        else  {
-           $("#groupv").hide();
-           $("#groupv").html('');
-           $("#addbtn").hide();
-        }
-    });
+       
+    //获取知识点点击
+    InitKnownSet();  
   });
   
+  //获取知识点点击
+  function InitKnownSet(){
+    var cid=window.location.search.split('&')[1].split('=')[1];
+    var typeid=window.location.search.split('&')[2].split('=')[1];
+
+    $.ajax({
+      type:'post',
+      url:'/tiku/knownset',
+      data:{
+        cid:cid
+      },
+      success:function(res){
+        console.log("获取知识点下拉列表:");
+        console.log(res);
+
+        $("#kselect").html(res.data);
+      }
+    })
+  } 
+
   //保存数据
   function saveopt(){
      //得到参数
@@ -100,37 +110,45 @@ use app\models\Tixing;
 <div class="col-sm-9 col-md-4 col-md-4 main">
     <div id="w0">        
       <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>大赛名称:</label>
-          <input type="text" id="mename" class="form-control" style='width:250px;margin-left:30px;' />
+          <label class="control-label" style='line-height:34px;'>选择集合:</label>
+          <select class="form-control" id="kselect" onchange="kchange()"></select>          
           <div class="help-block"></div>
-      </div>     
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>是否分年级组:</label>
-          <div class='radiov'>
-            <input type="radio" name="isgroup" value="1" checked>是
-            <input type="radio" name="isgroup" value="0" style="margin-left:30px;">否
-            <button class='btn btn-primary' onclick='addgroup()' id='addbtn' style='display:none;'>添加组</button>
-          </div>
-          <div class="help-block"></div>
-      </div>      
-      <div class="form-group field-testpaper-tid" style='display:flex;' id="groupv">
-      
       </div> 
       <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>是否显示答案:</label>
-          <div class='radiov'>
-            <input type="radio" name="showanswer" value="1" checked>是
-            <input type="radio" name="showanswer" value="0" style="margin-left:30px;">否
-          </div>
-          <div class="help-block"></div>
-      </div>   
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>笔试名称:</label>
-          <input type="text" id="bishiname" class="form-control" style='width:250px;margin-left:30px;' />
+          <label class="control-label" style='line-height:34px;'>选择知识点:</label>
+          <div class="form-control" id="kchildv">
+            <input type="checkbox" class='kchilditem'/>知识点A
+            <input type="checkbox" class='kchilditem'/>知识点B
+            <input type="checkbox" class='kchilditem'/>知识点C
+            <input type="checkbox" class='kchilditem'/>知识点D
+            <input type="checkbox" class='kchilditem'/>知识点E
+            <input type="checkbox" class='kchilditem'/>知识点F
+          </div>          
           <div class="help-block"></div>
       </div>  
       <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>系统logo:</label>
+          <label class="control-label" style='line-height:34px;'>已选知识点:</label>
+          <div class="form-control" id="ckchildv">
+            <input type="checkbox" class='ckchilditem'/>知识点A
+            <input type="checkbox" class='ckchilditem'/>知识点B
+          </div>          
+          <div class="help-block"></div>
+      </div>    
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>选择组合:</label>
+          <div class='radiov'>
+            <input type="radio" name="istype" value="1" checked>文字-文字
+            <input type="radio" name="istype" value="0" style="margin-left:30px;">图片-文字
+          </div>
+          <div class="help-block"></div>
+      </div>   
+      <div class="form-group" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>题目:</label>
+          <input type="text" id="title" class="form-control" style='width:250px;margin-left:30px;' />
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group" style='display:flex;' id="uploadimg">
+          <label class="control-label" style='line-height:34px;'>选择图片:</label>
           <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
            <?=$form->field($model, 'imgpath')->widget('moxuandi\webuploader\SingleImage', [
             'config'=>[
@@ -140,21 +158,63 @@ use app\models\Tixing;
            ]);?>          
           <?php ActiveForm::end();?>          
           <div class="help-block"></div>
-      </div>
+      </div>  
       <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>笔试规则:</label>
-          <textarea  id="rule" class="form-control" style='width:250px;height:100px;margin-left:30px;'></textarea>
+          <label class="control-label" style='line-height:34px;'>答案A:</label>
+          <input type="text" id="optionA" class="form-control" style='width:250px;margin-left:30px;' />
           <div class="help-block"></div>
-      </div>
+      </div>  
       <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>笔试通过等级:</label>
+          <label class="control-label" style='line-height:34px;'>答案B:</label>
+          <input type="text" id="optionB" class="form-control" style='width:250px;margin-left:30px;' />
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>答案C:</label>
+          <input type="text" id="optionC" class="form-control" style='width:250px;margin-left:30px;' />
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>答案D:</label>
+          <input type="text" id="optionD" class="form-control" style='width:250px;margin-left:30px;' />
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>答案E:</label>
+          <input type="text" id="optionE" class="form-control" style='width:250px;margin-left:30px;' />
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>答案F:</label>
+          <input type="text" id="optionF" class="form-control" style='width:250px;margin-left:30px;' />
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>正确答案:</label>
           <div class='radiov'>
-            <input type="radio" name="islevel" value="0" />优秀（120-150分）
-            <input type="radio" name="islevel" value="1" style="margin-left:10px;">进阶（60-110分）
-            <input type="radio" name="islevel" value="2" style="margin-left:10px;">入门（10-50分）
+            <input type="radio" name="option" value="1" checked>A
+            <input type="radio" name="option" value="2" style="margin-left:30px;">B
+            <input type="radio" name="option" value="3" style="margin-left:30px;">C
+            <input type="radio" name="option" value="4" style="margin-left:30px;">D
+            <input type="radio" name="option" value="5" style="margin-left:30px;">E
+            <input type="radio" name="option" value="6" style="margin-left:30px;">F
           </div>
           <div class="help-block"></div>
       </div>
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>难易程度:</label>          
+          <select class="form-control" id="difficult">
+            <option value='1'>易</option>
+            <option value='2'>中</option>
+            <option value='3'>难</option>
+          </select>
+          <div class="help-block"></div>
+      </div> 
+      <div class="form-group field-testpaper-tid" style='display:flex;'>
+          <label class="control-label" style='line-height:34px;'>习题解析:</label>          
+          <textarea  id="marks" class="form-control" style='width:250px;height:100px;margin-left:30px;'></textarea>
+          <div class="help-block"></div>
+      </div>  
        <div class='bottombtnv' style='position: fixed;left: 65%;bottom: 30px;'>
           <button onclick="resetopt()"  class="btn btn-default" name="submit-button">取消</button> 
           <button onclick="saveopt()" class="btn btn-primary" name="submit-button">保存</button>             

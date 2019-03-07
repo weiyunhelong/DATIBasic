@@ -80,13 +80,8 @@ function editopt(id){
 }
 
 //新增页面
-function Add(){
-  var treeObj=$.fn.zTree.getZTreeObj("treeDemo"),
-  nodes=treeObj.getCheckedNodes(true),
-  kid=$("#kid").val(),
-  ckid=$("#ckid").val();
-  
-  window.document.location.href="/tiku/tixing?cid="+$("#cselect").val()+"&kid="+kid+'&ckid='+ckid;
+function Add(){  
+  window.document.location.href="/tiku/tixing?cid="+$("#cselect").val();
 }
 
 //批量删除
@@ -317,8 +312,8 @@ function Searchopt(){
     <div class='topleftv'>
     </div>
     <div class='toprightv'>
-     <button type="button" class="btn btn-success" onclick='Add()'>新建</button>
-     <button type="button" class="btn btn-warning" onclick='Delete()'>批量删除</button>
+      <button type="button" class="btn btn-success" onclick='Add()'>新增</button>
+      <button type="button" class="btn btn-warning" onclick='Delete()'>批量删除</button>
     </div>   
   </div>
   <div class="row placeholders">

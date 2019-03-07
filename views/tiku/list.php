@@ -121,7 +121,7 @@ function Back(){
                     'headerOptions' => ['width' => '100'],
                     'buttons' => [
                         "update"=>function ($url, $model, $key) {//print_r($key);exit;
-                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->name.'")']);
+                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->title.'")']);
                         },
                         'delete' => function ($url, $model, $key) {
                             return Html::a('删除', 'javascript:;', ['onclick'=>'deleteopt('.$model->id.')']);

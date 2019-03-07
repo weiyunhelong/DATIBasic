@@ -207,30 +207,50 @@ class TikuController extends Controller
         // 关闭 csrf 验证
         $this->enableCsrfValidation = false;
 
-        $cid= Yii::$app->request->get('id');
+        $cid= Yii::$app->request->get('cid');
 
-        $klist=Knownset::find()->where(['cid'=>$cid])->all();
-    
-        return ['status'=>'success', 'data'=>$klist];
+        $klist=Knownset::find()->where(['categoryid'=>$cid])->all();
+        $html='';
+        foreach($klist as $k=>$v){
+            $html=$html.'<option value="'.$v->id.'">'.$v->name.'</option>';
+        }
+        return ['status'=>'success', 'data'=>$html];
     }
-    
 
-    //编辑题型
+    //获取知识点
+    public function actionKnownledge()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        $kid= Yii::$app->request->get('kid');
+
+        $list=Knowledge::find()->where(['knownsetid'=>$kid])->all();
+        
+        return ['status'=>'success', 'data'=>$list];
+    }
+
+    //新增
+    public function actionAdd()
+    {
+        $this->layout='@app/views/layouts/layoutpage.php';
+        $newmodel=new Tiku();
+        return $this->render('add', [
+            'model' => $newmodel,
+        ]);
+    }
+
+    //编辑
     public function actionEdit()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
         $id= Yii::$app->request->get('id');
         $model = Tiku::findOne($id);
-        if (!empty($model)) {
-            return $this->render('edit', [
-                'model' => $model,
-            ]);
-        } else {
-            $newmodel=new Tiku();
-            return $this->render('edit', [
-                'model' => $newmodel,
-            ]);
-        }
+        return $this->render('edit', [
+            'model' => $model,
+        ]);
     }
         
 

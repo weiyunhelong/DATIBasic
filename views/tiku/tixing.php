@@ -15,7 +15,7 @@ $(function(){
 //创建题目页面
 function editopt(id){
   //获取url链接中的参数
-
+  var params=window.location.search;
   //iframe窗
   layer.open({
     type: 2,
@@ -23,7 +23,7 @@ function editopt(id){
     shadeClose: true,
     shade: 0.8,
     area: ['550px', '600px'],
-    content: "/tiku/edit/"+params+'&tixing='+id//iframe的url
+    content: "/tiku/add"+params+'&tixing='+id//iframe的url
   });
 }
 
