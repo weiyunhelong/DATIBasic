@@ -81,58 +81,35 @@ use app\models\Tixing;
     $("#ckchildv").html(html);
   }
   
-  //更新展现的形式
-  function changetype(tixing){
-    if(tixing==1){
-      $("#uploadimgv").hide();
-    }else{
-      $("#uploadimgv").show();
-    }
-  }
-
-  //增加选项
-  function addoption(){
-    if($("#optionEV").is(':hidden')){
-       $("#optionEV").show();
-       $("#answere").show();
-    } 
-    else if($("#optionFV").is(':hidden')){
-       $("#optionFV").show();
-       $("#answerf").show();
-       $("#addbtn").hide();
-    }
-  }
-
 
   //保存数据
   function saveopt(){
      //得到参数
      var kids=$("#chkknownsetids").val();//知识点
-     var showtype=$("input[name='type']:checked").val();//题型
+     var showtype="1";//题型
      var title=$("#title").val();//题目
-     var imgpath=$(".imgWrap img").attr("src");//图
-     var optionA=$("#optionA").val();//选项A
-     var optionB=$("#optionB").val();//选项B
-     var optionC=$("#optionC").val();//选项C
-     var optionD=$("#optionD").val();//选项D
-     var optionE=$("#optionE").val();//选项E
-     var optionF=$("#optionF").val();//选项F
+     var imgpath="";//图
+     var optionA="是";//选项A
+     var optionB="否";//选项B
+     var optionC="";//选项C
+     var optionD="";//选项D
+     var optionE="";//选项E
+     var optionF="";//选项F
      var answer=$("input[name='option']:checked").val();//正确答案
      var difficult=$("#difficult").val();//难易程度
      var marks=$("#marks").val();//习题解析
 
      if(kids==''){
         layer.msg('请选择知识点');
-     }else if(title==''&&showtype=='1'){
+     }else if(title==''){
         layer.msg('请输入题目');
-     }else if(imgpath==''&&showtype=='2'){
-        layer.msg('请选择图片');
      }else{
 
      $.ajax({
        type:'post',
        url:'/tiku/save',
        data:{   
+        id:0,
         categoryid:window.location.search.split('&')[0].split('=')[1],
         tixingid:window.location.search.split('&')[1].split('=')[1],        
         knowsetid:$("#kselect").val(),
@@ -250,79 +227,16 @@ use app\models\Tixing;
           <div class="form-control" id="ckchildv"></div>          
           <div class="help-block"></div>
       </div>    
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>选择组合:</label>
-          <div class='radiov'>
-            <input type="radio" name="type" value="1" checked onchange="changetype(1)">文字-文字
-            <input type="radio" name="type" value="0" style="margin-left:30px;" onchange="changetype(2)">图片-文字
-          </div>
-          <div class="help-block"></div>
-      </div>   
       <div class="form-group" style='display:flex;'>
           <label class="control-label" style='line-height:34px;'>题目:</label>
           <input type="text" id="title" class="form-control"  />
           <div class="help-block"></div>
-      </div> 
-      <div class="form-group" style='display:none;' id="uploadimgv">
-          <label class="control-label" style='line-height:34px;'>选择图片:</label>
-          <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
-           <?=$form->field($model, 'imgpath')->widget('moxuandi\webuploader\SingleImage', [
-            'config'=>[
-              'fileNumLimit' => 100,
-              'fileSizeLimit' => 30*1024*1024,
-              'fileSingleSizeLimit' => 30*1024*1024]
-           ]);?>          
-          <?php ActiveForm::end();?>          
-          <div class="help-block"></div>
-      </div>  
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>答案A:</label>
-          <input type="text" id="optionA" class="form-control"  />
-          <div class="help-block"></div>
-      </div>  
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>答案B:</label>
-          <input type="text" id="optionB" class="form-control"  />
-          <div class="help-block"></div>
-      </div> 
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>答案C:</label>
-          <input type="text" id="optionC" class="form-control"  />
-          <div class="help-block"></div>
-      </div> 
-      <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>答案D:</label>
-          <input type="text" id="optionD" class="form-control"  />
-          <div class="help-block"></div>
-      </div> 
-      <div class="form-group field-testpaper-tid" style='display:flex;' id="addbtn">
-          <label class="control-label" style='line-height:34px;'></label>
-          <img src="/images/btnadd.png" alt="" class="addbtn" onclick="addoption()"/>
-          <div class="help-block"></div>
-      </div> 
-      <div class="form-group field-testpaper-tid" style='display:none;' id="optionEV">
-          <label class="control-label" style='line-height:34px;'>答案E:</label>
-          <input type="text" id="optionE" class="form-control"  />
-          <div class="help-block"></div>
       </div>       
-      <div class="form-group field-testpaper-tid" style='display:none;' id="optionFV">
-          <label class="control-label" style='line-height:34px;'>答案F:</label>
-          <input type="text" id="optionF" class="form-control"  />
-          <div class="help-block"></div>
-      </div> 
       <div class="form-group field-testpaper-tid" style='display:flex;'>
           <label class="control-label" style='line-height:34px;'>正确答案:</label>
           <div class='form-controlv'>
-            <input type="radio" name="option" value="1" checked>A
-            <input type="radio" name="option" value="2" style="margin-left:10px;">B
-            <input type="radio" name="option" value="3" style="margin-left:10px;">C
-            <input type="radio" name="option" value="4" style="margin-left:10px;">D
-            <div class="answerv" id="answere" style="display:none;"> 
-              <input type="radio" name="option" value="5" style="margin-left:10px;">E
-            </div>
-            <div class="answerv" id="answerf" style="display:none;">
-             <input type="radio" name="option" value="6" style="margin-left:10px;">F
-            </div>
+            <input type="radio" name="option" value="1" checked>正确
+            <input type="radio" name="option" value="2" style="margin-left:10px;">错误           
           <div class="help-block"></div>
       </div>
       </div>

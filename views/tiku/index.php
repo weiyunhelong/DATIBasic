@@ -13,7 +13,7 @@ use app\models\Knowledge;
 
 <script type="text/javascript">
 $(function(){
-    $("#eightmenu").addClass("active");
+    $("#sevenmenu").addClass("active");
 
     //初始化学科下拉列表
     InitCategorySelect();

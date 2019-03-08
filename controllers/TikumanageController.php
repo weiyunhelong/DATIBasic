@@ -74,7 +74,7 @@ class TikumanageController extends Controller
            $query=$query->andFilterWhere(['category'=>$cid]); 
         } 
         $provider = new ActiveDataProvider([
-            'query' => Tiku::find()->where(['categoryid'=>$cid]),
+            'query' => $query,
             'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
             'pagination' => [
                 'pageSize' => 20,
@@ -103,7 +103,7 @@ class TikumanageController extends Controller
 
         //通过id得到题型
         $models=Category::find()->where([])->all();
-        $html='';
+        $html='<option value="0">请选择学科</option>';
         foreach($models as $K=>$v){
            if($v->id==$cid) {
              $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';

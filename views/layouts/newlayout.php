@@ -159,7 +159,6 @@ $(function(){
 })
 </script>
 <?php $this->endBody() ?>
-<?Yii::app()->clientScript->scriptMap = array('jquery.js' => false, 'jquery.min.js' => false);?>
 </body>
 </html>
 <?php $this->endPage() ?>

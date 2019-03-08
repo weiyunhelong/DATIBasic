@@ -9,7 +9,7 @@ use app\models\Category;
 ?>
 <script type="text/javascript">
 $(function(){
-    $("#sevenmenu").addClass("active");
+    $("#eightmenu").addClass("active");
 
     //获取学科的下拉列表
     InitCategory();
@@ -38,7 +38,7 @@ function  InitCategory(){
 //搜索数据
 function Searchopt(){
   var cid=$("#cselect").val();
-  window.document.location.href="/knowledge/index?cid="+cid;
+  window.document.location.href="/tikumanage/index?cid="+cid;
 }
 
 //批量删除
@@ -220,7 +220,7 @@ $.ajax({
                     'headerOptions' => ['width' => '100'],
                     'buttons' => [
                         "update"=>function ($url, $model, $key) {//print_r($key);exit;
-                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->name.'")']);
+                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->title.'")']);
                         },
                         'delete' => function ($url, $model, $key) {
                             return Html::a('删除', 'javascript:;', ['onclick'=>'deleteopt('.$model->id.')']);

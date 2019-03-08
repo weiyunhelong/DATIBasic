@@ -56,6 +56,19 @@ class TikuController extends Controller
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
+            'WebUpload' => [
+                'class' => 'moxuandi\webuploader\UploaderAction',
+                //可选参数, 参考 UMeditorAction::$_config
+                'config' => [
+                    'thumbStatus' => true,  // 生成缩略图
+                    'thumbWidth' => 150,    // 缩略图宽度
+                    'thumbHeight' => 100,   // 缩略图高度
+                    // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
+                   'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+                    // 上传保存路径, 可以自定义保存路径和文件名格式
+                   'saveDatabase' => false,  // 保存上传信息到数据库
+                ],
+            ],
         ];
     }
 
@@ -232,14 +245,48 @@ class TikuController extends Controller
         return ['status'=>'success', 'data'=>$list];
     }
 
-    //新增
-    public function actionAdd()
+    //单选题
+    public function actionDanxuan()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
         $newmodel=new Tiku();
-        return $this->render('add', [
+        return $this->render('danxuan', [
             'model' => $newmodel,
-        ]);
+            'WebUpload' => [
+             'class' => 'moxuandi\webuploader\UploaderAction',
+             //可选参数, 参考 UMeditorAction::$_config
+             'config' => [
+                 'thumbStatus' => true,  // 生成缩略图
+                 'thumbWidth' => 150,    // 缩略图宽度
+                 'thumbHeight' => 100,   // 缩略图高度
+                  // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
+                 'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+                  // 上传保存路径, 可以自定义保存路径和文件名格式
+                 'saveDatabase' => false,  // 保存上传信息到数据库
+             ]],
+         ]);
+    }
+    
+    //判断题
+    public function actionPanduan()
+    {
+        $this->layout='@app/views/layouts/layoutpage.php';
+        $newmodel=new Tiku();
+        return $this->render('panduan', [
+            'model' => $newmodel,
+            'WebUpload' => [
+             'class' => 'moxuandi\webuploader\UploaderAction',
+             //可选参数, 参考 UMeditorAction::$_config
+             'config' => [
+                 'thumbStatus' => true,  // 生成缩略图
+                 'thumbWidth' => 150,    // 缩略图宽度
+                 'thumbHeight' => 100,   // 缩略图高度
+                  // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
+                 'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+                  // 上传保存路径, 可以自定义保存路径和文件名格式
+                 'saveDatabase' => false,  // 保存上传信息到数据库
+             ]],
+         ]);
     }
 
     //编辑
@@ -249,8 +296,20 @@ class TikuController extends Controller
         $id= Yii::$app->request->get('id');
         $model = Tiku::findOne($id);
         return $this->render('edit', [
-            'model' => $model,
-        ]);
+            'model' => $model,'model' => $newmodel,
+            'WebUpload' => [
+             'class' => 'moxuandi\webuploader\UploaderAction',
+             //可选参数, 参考 UMeditorAction::$_config
+             'config' => [
+                 'thumbStatus' => true,  // 生成缩略图
+                 'thumbWidth' => 150,    // 缩略图宽度
+                 'thumbHeight' => 100,   // 缩略图高度
+                  // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
+                 'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+                  // 上传保存路径, 可以自定义保存路径和文件名格式
+                 'saveDatabase' => false,  // 保存上传信息到数据库
+             ]],
+         ]);
     }
         
 
@@ -281,12 +340,9 @@ class TikuController extends Controller
     {
         // 返回数据格式为 json
         Yii::$app->response->format = Response::FORMAT_JSON;
-        // 关闭 csrf 验证
-        $this->enableCsrfValidation = false;
-
+     
         $id= Yii::$app->request->post('id');
-        $id=(int)$id;
-        $categoryid= Yii::$app->request->post('categoryid');
+        $categoryid= Yii::$app->request->post('categoryid');      
         $tixingid= Yii::$app->request->post('tixingid');
         $knowsetid= Yii::$app->request->post('knowsetid');
         $knownids= Yii::$app->request->post('knownids');

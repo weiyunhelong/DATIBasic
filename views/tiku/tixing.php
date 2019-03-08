@@ -16,6 +16,12 @@ $(function(){
 function editopt(id){
   //获取url链接中的参数
   var params=window.location.search;
+  var path="";
+  if(id==1){
+    path="/tiku/danxuan"+params+'&tixing='+id;
+  }else if(id==2){
+    path="/tiku/panduan"+params+'&tixing='+id;
+  }
   //iframe窗
   layer.open({
     type: 2,
@@ -23,7 +29,7 @@ function editopt(id){
     shadeClose: true,
     shade: 0.8,
     area: ['550px', '600px'],
-    content: "/tiku/add"+params+'&tixing='+id//iframe的url
+    content: path//iframe的url
   });
 }
 
