@@ -19,16 +19,11 @@ use yii\widgets\Breadcrumbs;
     <?php $this->head() ?>
     <!--引用资源-->
     <link href="/css/common.css" rel="stylesheet" />
-    <script src="/jquery/jquery-2.1.1.min.js"></script>
+    <script src="/jquery/jquery-2.1.1.min.js"></script>  
     <script src="/bootstrap/bootstrap.js"></script>
     <link href="/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="/layer/skin/layer.css" rel="stylesheet" />
     <script src="/layer/layer.js"></script>
-    <!--WebUploader上传插件-->
-    <link href="/webuploader/webuploader.css" rel="stylesheet" />
-    <script src="/webuploader/webuploader.js"></script>
-    <link href="/css/upload.css" rel="stylesheet" />
-     
     <!--树形结构的数据-->
     <!--<script src="/zTree/js/jquery-1.4.4.min.js" type="text/javascript"></script>-->
     <script src="/zTree/js/jquery.ztree.all.js" type="text/javascript"></script>

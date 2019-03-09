@@ -26,11 +26,7 @@ use app\models\Megagroup;
     });
   });
   
-  //添加分组
-  function addgroup(){
-      $html="";
 
-  }
   //保存数据
   function saveopt(){
      //得到参数
@@ -152,7 +148,7 @@ use app\models\Megagroup;
           <div class="help-block"></div>
       </div>
       <div class="form-group field-testpaper-tid" style='display:flex;'>
-          <label class="control-label" style='line-height:34px;'>笔试通过等级:</label>
+          <label class="control-label" style='line-height:34px;'>通过等级:</label>
           <div class='radiov'>
             <input type="radio" name="islevel" value="0" />优秀（120-150分）
             <input type="radio" name="islevel" value="1" style="margin-left:10px;">进阶（60-110分）
@@ -160,7 +156,7 @@ use app\models\Megagroup;
           </div>
           <div class="help-block"></div>
       </div>
-       <div class='bottombtnv' style='position: fixed;left: 65%;bottom: 30px;'>
+       <div class='bottombtnv' style='margin: 30px 0px 30px 300px;display:flex;'>
           <button onclick="resetopt()"  class="btn btn-default" name="submit-button">取消</button> 
           <button onclick="saveopt()" class="btn btn-primary" name="submit-button">保存</button>             
         </div>

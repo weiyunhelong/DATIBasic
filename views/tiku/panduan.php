@@ -129,8 +129,15 @@ use app\models\Tixing;
        },
        success:function(res){
          if(res.status=='success'){          
-           parent.window.document.location.reload();
-           parent.layer.closeAll();
+            //新打开添加接口 
+            parent.layer.open({
+              type: 2,
+              title: '添加题目',
+              shadeClose: true,
+              shade: 0.8,
+              area: ['550px', '600px'],
+              content: window.location.href//iframe的url
+            });
          }else{
            layer.msg("保存失败");
          }        

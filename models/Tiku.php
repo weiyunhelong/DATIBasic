@@ -41,7 +41,7 @@ class Tiku extends \yii\db\ActiveRecord
             'difficult' => 'difficult',     
             'knownids' => 'knownids',    
             'title' => '题目',   
-            'imgpath' => '图片',   
+            'imgpath' => '',   
             'optionA' => '选项A',  
             'optionB' => '选项B', 
             'optionC' => '选项C',    

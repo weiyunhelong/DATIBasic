@@ -13,9 +13,12 @@ use app\models\Category;
 use app\models\Knownset;
 use app\models\Knowledge;
 use yii\data\ActiveDataProvider;
+use yii\web\UploadedFile;
+use xj\uploadify\UploadAction;
 
 class TikuController extends Controller
 {
+    
 
     /**
      * {@inheritdoc}
@@ -39,7 +42,7 @@ class TikuController extends Controller
                 'actions' => [
                     'logout' => ['post'],
                 ],
-            ],
+            ]
         ];
     }
 
@@ -58,18 +61,20 @@ class TikuController extends Controller
             ],
             'WebUpload' => [
                 'class' => 'moxuandi\webuploader\UploaderAction',
-                //可选参数, 参考 UMeditorAction::$_config
+                // 'config'控制服务器端处理图片限制规则, 为空则为默认值
                 'config' => [
-                    'thumbStatus' => true,  // 生成缩略图
-                    'thumbWidth' => 150,    // 缩略图宽度
-                    'thumbHeight' => 100,   // 缩略图高度
-                    // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                   'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+                  'maxSize' => 5*1024*1024,  // 上传大小限制, 单位B, 默认5MB, 注意修改服务器的大小限制
+                  'allowFiles' => ['.png', '.jpg', '.jpeg', '.gif', '.bmp'],  // 上传图片格式显示
+                  'thumbStatus' => false,  // 是否生成缩略图
+                  'thumbWidth' => 300,  // 缩略图宽度
+                  'thumbHeight' => 200,  // 缩略图高度
+                  'thumbCut' => 1,  // 生成缩略图的方式, 0:留白, 1:裁剪
+                  'pathFormat' => 'uploads/tiku/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
                     // 上传保存路径, 可以自定义保存路径和文件名格式
-                   'saveDatabase' => false,  // 保存上传信息到数据库
-                ],
-            ],
-        ];
+                  'saveDatabase' => false,  // 保存上传信息到数据库
+                    // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
+                ]]
+            ];
     }
 
     //页面
@@ -110,8 +115,8 @@ class TikuController extends Controller
         //通过id得到题型
         $models=Category::find()->where([])->all();
         $html='';
-        foreach($models as $K=>$v){
-           $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+        foreach ($models as $K=>$v) {
+            $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
         }
         return ['status'=>'success', 'data'=>$html];
     }
@@ -184,7 +189,25 @@ class TikuController extends Controller
         ]);
     }
     
+    public function actionUpload(){
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
 
+        $file=UploadedFile::getInstance('file');
+        
+        //调用模型中的属性  返回上传文件的名称
+        $name = time();
+      
+        //拼装上传文件的路径
+        $rootPath = "uploads/tiku";
+        if (!file_exists($rootPath)) {
+           mkdir($rootPath,true);
+       }
+       //调用模型类中的方法 保存图片到该路径
+       $file->saveAs($rootPath . "/". $name);
+       return "/". $rootPath . "/". $name;
+    }
     /**
      * Displays homepage.
      *
@@ -224,7 +247,7 @@ class TikuController extends Controller
 
         $klist=Knownset::find()->where(['categoryid'=>$cid])->all();
         $html='';
-        foreach($klist as $k=>$v){
+        foreach ($klist as $k=>$v) {
             $html=$html.'<option value="'.$v->id.'">'.$v->name.'</option>';
         }
         return ['status'=>'success', 'data'=>$html];
@@ -244,27 +267,16 @@ class TikuController extends Controller
         
         return ['status'=>'success', 'data'=>$list];
     }
-
+    public $enableCsrfValidation=false;
+    
     //单选题
     public function actionDanxuan()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
         $newmodel=new Tiku();
         return $this->render('danxuan', [
-            'model' => $newmodel,
-            'WebUpload' => [
-             'class' => 'moxuandi\webuploader\UploaderAction',
-             //可选参数, 参考 UMeditorAction::$_config
-             'config' => [
-                 'thumbStatus' => true,  // 生成缩略图
-                 'thumbWidth' => 150,    // 缩略图宽度
-                 'thumbHeight' => 100,   // 缩略图高度
-                  // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                 'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                  // 上传保存路径, 可以自定义保存路径和文件名格式
-                 'saveDatabase' => false,  // 保存上传信息到数据库
-             ]],
-         ]);
+            'model' => $newmodel
+            ]);
     }
     
     //判断题
@@ -275,17 +287,17 @@ class TikuController extends Controller
         return $this->render('panduan', [
             'model' => $newmodel,
             'WebUpload' => [
-             'class' => 'moxuandi\webuploader\UploaderAction',
-             //可选参数, 参考 UMeditorAction::$_config
-             'config' => [
-                 'thumbStatus' => true,  // 生成缩略图
-                 'thumbWidth' => 150,    // 缩略图宽度
-                 'thumbHeight' => 100,   // 缩略图高度
-                  // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                 'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                  // 上传保存路径, 可以自定义保存路径和文件名格式
-                 'saveDatabase' => false,  // 保存上传信息到数据库
-             ]],
+                'class' => 'moxuandi\webuploader\UploaderAction',
+                //可选参数, 参考 UMeditorAction::$_config
+                'config' => [
+                    'thumbStatus' => true,  // 生成缩略图
+                    'thumbWidth' => 150,    // 缩略图宽度
+                    'thumbHeight' => 100,   // 缩略图高度
+                     // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
+                    'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+                     // 上传保存路径, 可以自定义保存路径和文件名格式
+                    'saveDatabase' => false,  // 保存上传信息到数据库
+                ]],
          ]);
     }
 
@@ -340,9 +352,11 @@ class TikuController extends Controller
     {
         // 返回数据格式为 json
         Yii::$app->response->format = Response::FORMAT_JSON;
-     
+       // 关闭 csrf 验证
+       $this->enableCsrfValidation = false;
+
         $id= Yii::$app->request->post('id');
-        $categoryid= Yii::$app->request->post('categoryid');      
+        $categoryid= Yii::$app->request->post('categoryid');
         $tixingid= Yii::$app->request->post('tixingid');
         $knowsetid= Yii::$app->request->post('knowsetid');
         $knownids= Yii::$app->request->post('knownids');

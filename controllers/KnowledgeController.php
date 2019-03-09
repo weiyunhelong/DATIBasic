@@ -72,10 +72,10 @@ class KnowledgeController extends Controller
         $categoryid= Yii::$app->request->get('cid');
         $knownsetid= Yii::$app->request->get('kid');
         $query=Knowledge::find()->where([]);
-        if ($categoryid!='0') {
+        if ($categoryid!=0) {
             $query=$query->andWhere(['categoryid'=>(int)$categoryid]);
         }
-        if ($knownsetid!='0') {
+        if ($knownsetid!=0) {
             $query=$query->andWhere(['knownsetid'=>(int)$knownsetid]);
         }
         $provider = new ActiveDataProvider([

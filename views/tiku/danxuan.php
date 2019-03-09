@@ -4,17 +4,16 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\models\Tiku;
 use app\models\Tixing;
-
 ?>
 
 <script type="text/javascript">
 //上传验证
 
-  $(function(){           
+  $(function(){
     //获取知识点点击
     InitKnownSet();  
   });
-  
+
   //获取知识点点击
   function InitKnownSet(){
     var cid=window.location.search.split('&')[0].split('=')[1];
@@ -151,9 +150,7 @@ use app\models\Tixing;
         mark:marks//习题解析
        },
        success:function(res){
-         if(res.status=='success'){          
-          
-           //parent.layer.closeAll();
+         if(res.status=='success'){    
            //新打开添加接口 
            parent.layer.open({
               type: 2,
@@ -273,12 +270,16 @@ use app\models\Tixing;
           <div class="help-block"></div>
       </div> 
       <div class="form-group" style='display:none;' id="uploadimgv">
-          <label class="control-label" style='line-height:34px;'>选择图片:</label>
-          <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
-           <?=$form->field($model, 'imgpath')->widget('moxuandi\webuploader\SingleImage', []);?>          
-          <?php ActiveForm::end();?>         
-          <div class="help-block"></div>
-      </div>  
+         <label class="control-label" style='line-height:34px;'>图片:</label>
+         <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
+           <?=$form->field($model, 'imgpath')->widget('moxuandi\webuploader\MultiImage', [
+            'config'=>[
+              'fileNumLimit' => 100,
+              'fileSizeLimit' => 30*1024*1024,
+              'fileSingleSizeLimit' => 30*1024*1024]
+           ]);?>          
+          <?php ActiveForm::end();?>      
+     </div>  
       <div class="form-group field-testpaper-tid" style='display:flex;'>
           <label class="control-label" style='line-height:34px;'>答案A:</label>
           <input type="text" id="optionA" class="form-control"  />
