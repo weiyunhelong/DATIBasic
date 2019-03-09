@@ -53,20 +53,7 @@ class MegagameController extends Controller
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
-            'WebUpload' => [
-                'class' => 'moxuandi\webuploader\UploaderAction',
-                //可选参数, 参考 UMeditorAction::$_config
-                'config' => [
-                    'thumbStatus' => true,  // 生成缩略图
-                    'thumbWidth' => 150,    // 缩略图宽度
-                    'thumbHeight' => 100,   // 缩略图高度
-                    // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                   'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                    // 上传保存路径, 可以自定义保存路径和文件名格式
-                   'saveDatabase' => false,  // 保存上传信息到数据库
-                ],
-            ],
+            ]
         ];
     }
 
@@ -96,7 +83,7 @@ class MegagameController extends Controller
         ]);
     }
        
-    //编辑题型
+    //编辑
     public function actionEdit()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
@@ -114,26 +101,13 @@ class MegagameController extends Controller
         }
     }
     
-    //新增题型
+    //新增
     public function actionAdd()
     {
         $this->layout='@app/views/layouts/layoutpage.php';
         $newmodel=new Megagame();
         return $this->render('add', [
-           'model' => $newmodel,
-           'WebUpload' => [
-            'class' => 'moxuandi\webuploader\UploaderAction',
-            //可选参数, 参考 UMeditorAction::$_config
-            'config' => [
-                'thumbStatus' => true,  // 生成缩略图
-                'thumbWidth' => 150,    // 缩略图宽度
-                'thumbHeight' => 100,   // 缩略图高度
-                 // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                 // 上传保存路径, 可以自定义保存路径和文件名格式
-                'saveDatabase' => false,  // 保存上传信息到数据库
-            ],
-        ],
+           'model' => $newmodel
         ]);
     }
 
@@ -270,6 +244,27 @@ class MegagameController extends Controller
             }
         }
         return ['status'=>'success', 'message'=>'保存成功'];
+    }
+    
+    public $enableCsrfValidation=false;
+    //上传图片
+    public function actionUpload(){
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        $file=UploadedFile::getInstanceByName('Megagame[logo]');
+        
+        //拼装上传文件的路径
+        $rootPath = "uploads/logo";
+        $name =uniqid() . '.' . $file->extension;
+
+        if (!file_exists($rootPath)) {
+           mkdir($rootPath,true);
+       }
+       //调用模型类中的方法 保存图片到该路径
+       $file->saveAs($rootPath . "/". $name);
+       return "/". $rootPath . "/". $name;
     }
 
     /**

@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\models\Tiku;
 use app\models\Tixing;
+use dosamigos\fileupload\FileUpload;
 ?>
 
 <script type="text/javascript">
@@ -109,7 +110,7 @@ use app\models\Tixing;
      var kids=$("#chkknownsetids").val();//知识点
      var showtype=$("input[name='type']:checked").val();//题型
      var title=$("#title").val();//题目
-     var imgpath=$(".imgWrap img").attr("src");//图
+     var imgpath=$("#uploadimg").attr("src");//图
      var optionA=$("#optionA").val();//选项A
      var optionB=$("#optionB").val();//选项B
      var optionC=$("#optionC").val();//选项C
@@ -229,6 +230,16 @@ use app\models\Tixing;
   .form-group {
     margin-bottom: 15px;
     display: flex;
+    flex-wrap:wrap;
+  }
+  .uploadimgv{
+    width: 300px;
+    height:280px;
+    margin-left: 30px;
+  }
+  .uploadimg{
+    width: 100%;
+    height:100%;
   }
   .answerv{
     width:40px;
@@ -271,14 +282,24 @@ use app\models\Tixing;
       </div> 
       <div class="form-group" style='display:none;' id="uploadimgv">
          <label class="control-label" style='line-height:34px;'>图片:</label>
-         <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
-           <?=$form->field($model, 'imgpath')->widget('moxuandi\webuploader\MultiImage', [
-            'config'=>[
-              'fileNumLimit' => 100,
-              'fileSizeLimit' => 30*1024*1024,
-              'fileSingleSizeLimit' => 30*1024*1024]
-           ]);?>          
-          <?php ActiveForm::end();?>      
+         <div class="uploadimgv">
+           <img src="/images/uploadimg.png" alt="" class="uploadimg" id="uploadimg">
+         </div> 
+         <?= FileUpload::widget([
+            'model' => $model,
+            'attribute' => 'imgpath',
+            'url' => ['tiku/upload'], // your url, this is just for demo purposes,
+            'options' => ['accept' => 'image/*'],
+            'clientOptions' => [
+               'maxFileSize' => 2000000
+             ],
+            'clientEvents' => [
+              'fileuploaddone' => 'function(e, data) {
+                console.log(data);
+                $("#uploadimg").attr("src",data.result);
+              }'
+            ],
+     ]); ?> 
      </div>  
       <div class="form-group field-testpaper-tid" style='display:flex;'>
           <label class="control-label" style='line-height:34px;'>答案A:</label>

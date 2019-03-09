@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\models\Megagame;
 use app\models\Megagroup;
-
+use dosamigos\fileupload\FileUpload;
 ?>
 
 <script type="text/javascript">
@@ -33,7 +33,7 @@ use app\models\Megagroup;
      var mename=$("#mename").val();
      var isgroup=$("input[name='isgroup']:checked").val();
      var bishiname=$("#bishiname").val();
-     var logo=$(".imgWrap img").attr("src");
+     var logo=$("#uploadimg").attr("src");
      var rule=$("#rule").val();
      var islevel=$("input[name='islevel']:checked").val();
 
@@ -93,6 +93,20 @@ use app\models\Megagroup;
   .radiov{
     margin-left: 30px;
     padding-top: 5px;
+  } 
+  .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap:wrap;
+  }
+  .uploadimgv{
+    width: 300px;
+    height:280px;
+    margin-left: 30px;
+  }
+  .uploadimg{
+    width: 100%;
+    height:100%;
   }
 </style>
 
@@ -132,14 +146,21 @@ use app\models\Megagroup;
       </div>  
       <div class="form-group field-testpaper-tid" style='display:flex;'>
           <label class="control-label" style='line-height:34px;'>系统logo:</label>
-          <?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
-           <?=$form->field($model, 'logo')->widget('moxuandi\webuploader\SingleImage', [
-            'config'=>[
-              'fileNumLimit' => 100,
-              'fileSizeLimit' => 30*1024*1024,
-              'fileSingleSizeLimit' => 30*1024*1024]
-           ]);?>          
-          <?php ActiveForm::end();?>          
+          <div class="uploadimgv">
+            <img src="/images/uploadimg.png" alt="" class="uploadimg" id="uploadimg">
+          </div>
+          <?= FileUpload::widget([
+            'model' => $model,
+            'attribute' => 'logo',
+            'url' => ['megagame/upload'], // your url, this is just for demo purposes,
+            'options' => ['accept' => 'image/*'],
+            'clientEvents' => [
+              'fileuploaddone' => 'function(e, data) {
+                console.log(data);
+                $("#uploadimg").attr("src",data.result);
+              }'
+            ],
+           ]);?>        
           <div class="help-block"></div>
       </div>
       <div class="form-group field-testpaper-tid" style='display:flex;'>
@@ -156,8 +177,8 @@ use app\models\Megagroup;
           </div>
           <div class="help-block"></div>
       </div>
-       <div class='bottombtnv' style='margin: 30px 0px 30px 300px;display:flex;'>
-          <button onclick="resetopt()"  class="btn btn-default" name="submit-button">取消</button> 
+       <div class='bottombtnv' style='margin: 30px 0px 30px 270px;display:flex;'>
+          <button onclick="resetopt()"  class="btn btn-default" style="margin-right:30px;" name="submit-button">取消</button> 
           <button onclick="saveopt()" class="btn btn-primary" name="submit-button">保存</button>             
         </div>
     </div>

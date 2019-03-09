@@ -3,7 +3,7 @@ use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use app\models\Subject;
-
+use dosamigos\fileupload\FileUpload;
 ?>
 
 <script type="text/javascript">

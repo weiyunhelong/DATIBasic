@@ -12,13 +12,13 @@ use app\models\Tiku;
 use app\models\Category;
 use app\models\Knownset;
 use app\models\Knowledge;
+use app\models\Megagame;
+use app\models\Megagroup;
 use yii\data\ActiveDataProvider;
 use yii\web\UploadedFile;
-use xj\uploadify\UploadAction;
 
 class TikuController extends Controller
-{
-    
+{   
 
     /**
      * {@inheritdoc}
@@ -58,23 +58,8 @@ class TikuController extends Controller
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
-            'WebUpload' => [
-                'class' => 'moxuandi\webuploader\UploaderAction',
-                // 'config'控制服务器端处理图片限制规则, 为空则为默认值
-                'config' => [
-                  'maxSize' => 5*1024*1024,  // 上传大小限制, 单位B, 默认5MB, 注意修改服务器的大小限制
-                  'allowFiles' => ['.png', '.jpg', '.jpeg', '.gif', '.bmp'],  // 上传图片格式显示
-                  'thumbStatus' => false,  // 是否生成缩略图
-                  'thumbWidth' => 300,  // 缩略图宽度
-                  'thumbHeight' => 200,  // 缩略图高度
-                  'thumbCut' => 1,  // 生成缩略图的方式, 0:留白, 1:裁剪
-                  'pathFormat' => 'uploads/tiku/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                    // 上传保存路径, 可以自定义保存路径和文件名格式
-                  'saveDatabase' => false,  // 保存上传信息到数据库
-                    // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                ]]
-            ];
+            ]
+        ];
     }
 
     //页面
@@ -189,18 +174,18 @@ class TikuController extends Controller
         ]);
     }
     
+    //上传图片
     public function actionUpload(){
         Yii::$app->response->format = Response::FORMAT_JSON;
         // 关闭 csrf 验证
         $this->enableCsrfValidation = false;
 
-        $file=UploadedFile::getInstance('file');
+        $file=UploadedFile::getInstanceByName('Tiku[imgpath]');
         
-        //调用模型中的属性  返回上传文件的名称
-        $name = time();
-      
         //拼装上传文件的路径
         $rootPath = "uploads/tiku";
+        $name =uniqid() . '.' . $file->extension;
+
         if (!file_exists($rootPath)) {
            mkdir($rootPath,true);
        }
@@ -267,7 +252,7 @@ class TikuController extends Controller
         
         return ['status'=>'success', 'data'=>$list];
     }
-    public $enableCsrfValidation=false;
+  
     
     //单选题
     public function actionDanxuan()
@@ -275,8 +260,8 @@ class TikuController extends Controller
         $this->layout='@app/views/layouts/layoutpage.php';
         $newmodel=new Tiku();
         return $this->render('danxuan', [
-            'model' => $newmodel
-            ]);
+           'model' => $newmodel           
+        ]);
     }
     
     //判断题
@@ -285,22 +270,10 @@ class TikuController extends Controller
         $this->layout='@app/views/layouts/layoutpage.php';
         $newmodel=new Tiku();
         return $this->render('panduan', [
-            'model' => $newmodel,
-            'WebUpload' => [
-                'class' => 'moxuandi\webuploader\UploaderAction',
-                //可选参数, 参考 UMeditorAction::$_config
-                'config' => [
-                    'thumbStatus' => true,  // 生成缩略图
-                    'thumbWidth' => 150,    // 缩略图宽度
-                    'thumbHeight' => 100,   // 缩略图高度
-                     // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                    'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                     // 上传保存路径, 可以自定义保存路径和文件名格式
-                    'saveDatabase' => false,  // 保存上传信息到数据库
-                ]],
-         ]);
+           'model' => $newmodel
+        ]);
     }
-
+    public $enableCsrfValidation=false;
     //编辑
     public function actionEdit()
     {
