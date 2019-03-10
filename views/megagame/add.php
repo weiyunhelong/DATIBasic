@@ -88,7 +88,7 @@ use dosamigos\fileupload\FileUpload;
   .control-label{
     line-height: 34px;
     text-align: right;
-    width: 75px;
+    width: 100px;
   }
   .radiov{
     margin-left: 30px;

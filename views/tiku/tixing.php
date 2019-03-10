@@ -9,7 +9,7 @@ use app\models\Category;
 ?>
 <script type="text/javascript">
 $(function(){
-    $("#eightmenu").addClass("active");
+    $("#sevenmenu").addClass("active");
 })
 
 //创建题目页面

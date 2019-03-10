@@ -274,6 +274,7 @@ class TikuController extends Controller
         ]);
     }
     public $enableCsrfValidation=false;
+    
     //编辑
     public function actionEdit()
     {
@@ -281,19 +282,7 @@ class TikuController extends Controller
         $id= Yii::$app->request->get('id');
         $model = Tiku::findOne($id);
         return $this->render('edit', [
-            'model' => $model,'model' => $newmodel,
-            'WebUpload' => [
-             'class' => 'moxuandi\webuploader\UploaderAction',
-             //可选参数, 参考 UMeditorAction::$_config
-             'config' => [
-                 'thumbStatus' => true,  // 生成缩略图
-                 'thumbWidth' => 150,    // 缩略图宽度
-                 'thumbHeight' => 100,   // 缩略图高度
-                  // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
-                 'pathFormat' => 'uploads/logo/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
-                  // 上传保存路径, 可以自定义保存路径和文件名格式
-                 'saveDatabase' => false,  // 保存上传信息到数据库
-             ]],
+            'model' => $model
          ]);
     }
         

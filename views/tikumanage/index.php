@@ -81,15 +81,22 @@ layer.closeAll();
 }
 
 //编辑
-function editopt(id){
+function editopt(id,type){
  //iframe窗
+ var path="";
+ if(type==1){
+    path='/tikumanage/danxuan?id='+id;
+ }else{
+    path='/tikumanage/panduan?id='+id;
+ }
+ console.log("跳转链接:"+path);
  layer.open({
     type: 2,
     title: '修改习题',
     shadeClose: true,
     shade: 0.8,
-    area: ['380px', '300px'],
-    content: '/tikumanage/edit?id='+id //iframe的url
+    area: ['500px', '600px'],
+    content: path //iframe的url
   });
 }
 
@@ -220,7 +227,7 @@ $.ajax({
                     'headerOptions' => ['width' => '100'],
                     'buttons' => [
                         "update"=>function ($url, $model, $key) {//print_r($key);exit;
-                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->title.'")']);
+                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.','.$model->tixingid.')']);
                         },
                         'delete' => function ($url, $model, $key) {
                             return Html::a('删除', 'javascript:;', ['onclick'=>'deleteopt('.$model->id.')']);

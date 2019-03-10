@@ -8,13 +8,18 @@ use app\models\Tixing;
 ?>
 
 <script type="text/javascript">
-//上传验证
+
 
   $(function(){           
     //获取知识点点击
-    InitKnownSet();  
+    InitKnownSet(); 
+
+    //获取题目的详情
+    InitDetail(); 
+
+    //获取已经选择知识点
+    InitChkKnownSet(); 
   });
-  
   //获取知识点点击
   function InitKnownSet(){
     var cid=window.location.search.split('&')[0].split('=')[1];
@@ -30,12 +35,62 @@ use app\models\Tixing;
         console.log(res);
 
         $("#kselect").html(res.data);
-        //选中知识点集合,获取知识点
-        kchange();
+                
       }
     })
   } 
+  //获取题目的详情
+  function InitDetail(){
+      var id=window.location.search.split('&')[0].split('=')[1];
+     $.ajax({
+       type:'get',
+       url:'/tikumanage/info?id='+id,
+       data:"",
+       success:function(res){
+          console.log("获取判断详情:");
+          console.log(res); 
+
+          //赋值部分
+          $("#categoryid").val(res.data.categoryid);
+          $("#tixingid").val(res.data.tixingid);
+          $("#chkknownsetids").val(res.data.knownids);
+
+          $("#title").val(res.data.title);
+          $("#marks").val(res.data.mark);
+          $("#difficult").val(res.data.difficult);
+          if(res.data.answer==1){
+            $("input[name='option'").eq(0).attr("checked",true);
+          }else{
+            $("input[name='option'").eq(1).attr("checked",true);
+          }
+          $("#title").val(res.data.title);
+          $("#title").val(res.data.title);
+          $("#title").val(res.data.title);
+
+       }
+     })
+  }
+
   
+  //获取已经选择知识点
+  function InitChkKnownSet(){
+    var cid=window.location.search.split('&')[0].split('=')[1];
+
+    $.ajax({
+      type:'get',
+      url:'/tikumanage/knownledge',
+      data:{
+       id:cid
+      },
+      success:function(res){
+        console.log("获取已经选择知识点:");
+        console.log(res);
+
+        $("#kchildv").html(res.data);
+        $("#ckchildv").html(res.vdata);
+      }
+    })
+  } 
   //选中知识点集合,获取知识点
   function kchange(){
 
@@ -109,35 +164,28 @@ use app\models\Tixing;
        type:'post',
        url:'/tiku/save',
        data:{   
-        id:0,
-        categoryid:window.location.search.split('&')[0].split('=')[1],
-        tixingid:window.location.search.split('&')[1].split('=')[1],        
+        id:window.location.search.split('&')[0].split('=')[1],
+        categoryid:$("#categoryid").val(),
+        tixingid:$("#tixingid").val(),      
         knowsetid:$("#kselect").val(),
         knownids:kids,//知识点
         showtype:showtype,//题型
         title:title,//题目
-        imgpath:imgpath,//图
-        optionA:optionA,//选项A
-        optionB:optionB,//选项B
-        optionC:optionC,//选项C
-        optionD:optionD,//选项D
-        optionE:optionE,//选项E
-        optionF:optionF,//选项F
+        imgpath:"",//图
+        optionA:"正确",//选项A
+        optionB:"错误",//选项B
+        optionC:"",//选项C
+        optionD:"",//选项D
+        optionE:"",//选项E
+        optionF:"",//选项F
         answer:answer,//正确答案
         difficult:difficult,//难易程度
         mark:marks//习题解析
        },
        success:function(res){
         if(res.status=='success'){        
-            //新打开添加接口 
-            parent.layer.open({
-              type: 2,
-              title: '添加题目',
-              shadeClose: true,
-              shade: 0.8,
-              area: ['550px', '600px'],
-              content: window.location.href//iframe的url
-            });
+           parent.window.document.location.reload();
+           parent.layer.closeAll();
          }else{
            layer.msg("保存失败");
          }  
@@ -215,7 +263,14 @@ use app\models\Tixing;
   }
 </style>
 
+
+<!--隐藏数据域-->
+<input type='hidden' id="categoryid" />
+<input type='hidden' id="tixingid" />
 <input type='hidden' id="chkknownsetids" />
+<?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
+    <?=$form->field($model, 'id')->hiddenInput([])->label(false); ?>          
+<?php ActiveForm::end();?>
 
 <!--编辑内容部分-->
 <div class="col-sm-9 col-md-4 col-md-4 main">

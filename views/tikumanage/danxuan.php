@@ -5,23 +5,29 @@ use yii\widgets\ActiveForm;
 use app\models\Tiku;
 use app\models\Tixing;
 use dosamigos\fileupload\FileUpload;
+
 ?>
 
 <script type="text/javascript">
 //上传验证
 
-  $(function(){
-    //获取知识点点击
-    InitKnownSet();  
-  });
-
+  $(function(){ 
   //获取知识点点击
-  function InitKnownSet(){
+  InitKnownSet(); 
+
+  //获取题目的详情
+  InitDetail(); 
+
+  //获取已经选择知识点
+  InitChkKnownSet(); 
+});
+//获取知识点点击
+function InitKnownSet(){
     var cid=window.location.search.split('&')[0].split('=')[1];
 
     $.ajax({
       type:'get',
-      url:'/tiku/getks',
+      url:'/tikumanage/getks',
       data:{
         cid:cid
       },
@@ -30,32 +36,109 @@ use dosamigos\fileupload\FileUpload;
         console.log(res);
 
         $("#kselect").html(res.data);
-        //选中知识点集合,获取知识点
-        kchange();
+                
       }
     })
   } 
-  
-  //选中知识点集合,获取知识点
-  function kchange(){
-
+ //获取题目的详情
+  function InitDetail(){
+    var id=window.location.search.split('&')[0].split('=')[1];
     $.ajax({
-      type:'get',
-      url:'/tiku/knownledge',
-      data:{
-        kid:$("#kselect").val()
-      },
-      success:function(res){
-        console.log("获取知识点列表:");
-        console.log(res);       
-        var html='';
-        for(var i=0;i<res.data.length;i++){
-          html+="<div class='kchilditemv'><input name='kchilditem' type='checkbox' class='kchilditem' data-id='"+res.data[i].id+"' data-name='"+res.data[i].name+"' onchange='chkknownset()' />"+res.data[i].name+"</div>";
-        }
-        $("#kchildv").html(html);
+     type:'get',
+     url:'/tikumanage/info?id='+id,
+     data:"",
+     success:function(res){
+      console.log("获取选择详情:");
+      console.log(res); 
+
+      //赋值部分
+      $("#categoryid").val(res.data.categoryid);
+      $("#tixingid").val(res.data.tixingid);
+      $("#chkknownsetids").val(res.data.knownids);
+
+      $("#title").val(res.data.title);
+      $("#marks").val(res.data.mark);
+      $("#difficult").val(res.data.difficult);
+      if(res.data.answer==1){
+        $("input[name='option'").eq(0).attr("checked",true);
+      }else{
+        $("input[name='option'").eq(1).attr("checked",true);
       }
-    })
+      //选项的值
+      $("#optionA").val(res.data.optionA);
+      $("#optionB").val(res.data.optionB);
+      $("#optionC").val(res.data.optionC);
+      $("#optionD").val(res.data.optionD);
+      $("#optionE").val(res.data.optionE);
+      $("#optionF").val(res.data.optionF);
+      //图片的值
+      if(res.data.imgpath==null||res.data.imgpath==""){
+        $("#uploadimg").attr("src","/images/uploadimg.png");
+      }else{
+        $("#uploadimg").attr("src",res.data.imgpath);
+      }
+      //选项的形式
+      if(res.data.showtype==1){
+        $("input[name='type'").eq(0).attr("checked",true);       
+      }else{
+        $("input[name='type'").eq(1).attr("checked",true);
+        $("#uploadimgv").show();
+      }
+      //答案的选项
+      if($("#optionE").val()!=""){
+        $("#optionEV").show();
+        $("#answere").show();
+      }
+      if($("#optionF").val()!=""){
+        $("#optionFV").show();
+        $("#answerf").show();
+        $("#addbtn").hide();
+      }
+   }
+ })
+}
+
+//获取已经选择知识点
+function InitChkKnownSet(){
+var cid=window.location.search.split('&')[0].split('=')[1];
+
+$.ajax({
+  type:'get',
+  url:'/tikumanage/knownledge',
+  data:{
+   id:cid
+  },
+  success:function(res){
+    console.log("获取已经选择知识点:");
+    console.log(res);
+
+    $("#kchildv").html(res.data);
+    $("#ckchildv").html(res.vdata);
   }
+})
+} 
+
+//选中知识点集合,获取知识点
+function kchange(){
+
+$.ajax({
+  type:'get',
+  url:'/tiku/knownledge',
+  data:{
+    kid:$("#kselect").val()
+  },
+  success:function(res){
+    console.log("获取知识点列表:");
+    console.log(res);       
+    var html='';
+    for(var i=0;i<res.data.length;i++){
+      html+="<div class='kchilditemv'><input name='kchilditem' type='checkbox' class='kchilditem' data-id='"+res.data[i].id+"' data-name='"+res.data[i].name+"' onchange='chkknownset()' />"+res.data[i].name+"</div>";
+    }
+    $("#kchildv").html(html);
+  }
+})
+}
+
   
   //知识点选中
   function chkknownset(){
@@ -132,9 +215,10 @@ use dosamigos\fileupload\FileUpload;
      $.ajax({
        type:'post',
        url:'/tiku/save',
-       data:{   
-        categoryid:window.location.search.split('&')[0].split('=')[1],
-        tixingid:window.location.search.split('&')[1].split('=')[1],        
+       data:{
+        id:window.location.search.split('&')[0].split('=')[1],
+        categoryid:$("#categoryid").val(),
+        tixingid:$("#tixingid").val(),       
         knowsetid:$("#kselect").val(),
         knownids:kids,//知识点
         showtype:showtype,//题型
@@ -153,17 +237,8 @@ use dosamigos\fileupload\FileUpload;
        success:function(res){
         
          if(res.status=='success'){  
-           
-           //新打开添加接口 
-           parent.layer.open({
-              type: 2,
-              title: '添加题目',
-              shadeClose: true,
-              shade: 0.8,
-              area: ['550px', '600px'],
-              content: window.location.href//iframe的url
-            });
-          
+           parent.window.document.location.reload();
+           parent.layer.closeAll();
          }else{
            layer.msg("保存失败");
          }        
@@ -250,7 +325,13 @@ use dosamigos\fileupload\FileUpload;
   }
 </style>
 
+<!--隐藏数据域-->
+<input type='hidden' id="categoryid" />
+<input type='hidden' id="tixingid" />
 <input type='hidden' id="chkknownsetids" />
+<?php $form=ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);?>
+    <?=$form->field($model, 'id')->hiddenInput([])->label(false); ?>          
+<?php ActiveForm::end();?>
 
 <!--编辑内容部分-->
 <div class="col-sm-9 col-md-4 col-md-4 main">

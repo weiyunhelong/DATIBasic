@@ -6,8 +6,8 @@ use abei2017\wx\Application;
 use app\models\Category;
 use app\models\Knowledge;
 use app\models\Knowset;
-use app\models\Managame;
-use app\models\Managroup;
+use app\models\Megagame;
+use app\models\Megagroup;
 use app\models\Record;
 use app\models\Subject;
 use app\models\Tiku;
@@ -302,7 +302,7 @@ class ApiController extends \yii\web\Controller
         $groupid = Yii::$app->request->post('groupid');//分组id
          
         //根据分组id获取分组
-        $managroup=Managroup::find()->where(['tid'=>$groupid])->one();
+        $managroup=Megagroup::find()->where(['tid'=>$groupid])->one();
         
         if ($managroup==null) {
             return ['status' => 'fail','message' => '查询不到相关数据!'];
@@ -312,61 +312,88 @@ class ApiController extends \yii\web\Controller
             $kidarry=explode(',', $kids);
             $tikus=[];
             foreach ($kidarry as $key => $val) {
-                $tiobj=Tiku::find()->where(['like','knowids',[$val,',']])->asArray()->all();
+                $tiobj=Tiku::find()->where(['like','knownids',[$val,',']])->asArray()->all();
                 $tikus=array_merge($tikus, $tiobj);
             }
+            
             //根据题目，去除重复
-            $bb = array_unique($tikus);
-           
+            $aa = array();
+            $bb = array();
+            $index=0;
+            foreach ($tikus as $k=>$v) {
+                if (!in_array($v['id'], $aa)) {
+                    $aa[$index]=$v['id'];
+                    $bb[$index]=$tikus[$k];
+                    $index++;
+                }
+            }
             //根据困难程度[1-》易，2-》中,3-》难]，分别抽取5道题目
-            $yitikus=array_filter($bb, function ($var) {
-                return $var->difficult==1;
+            $yitikus=array_filter($bb, function ($v) {
+                return $v["difficult"]=="1";
             });
-            $zhongtikus=array_filter($bb, function ($var) {
-                return $var->difficult==2;
-            });          
-            $nantikus=array_filter($bb, function ($var) {
-                return $var->difficult==3;
+           
+            $zhongtikus=array_filter($bb, function ($v) {
+                return $v["difficult"]=="2";
             });
-
+                 
+            $nantikus=array_filter($bb, function ($v) {
+                return $v["difficult"]=="3";
+            });
+            
             //数组随机抽取5到题目
             $ytk=shuffle($yitikus);
             $ztk=shuffle($zhongtikus);
             $ntk=shuffle($nantikus);
-        
+            //return  $yitikus;
             //组成试卷
-            try{
-                $testpaper[0]=$ytk[0];
-                $testpaper[1]=$ytk[1];
-                $testpaper[2]=$ytk[2];
-                $testpaper[3]=$ytk[3];
-                $testpaper[4]=$ytk[4];
+            try {
+                $testpaper[0]=$this->DealData($yitikus[0]);
+                $testpaper[1]=$this->DealData($yitikus[1]);
+                $testpaper[2]=$this->DealData($yitikus[2]);
+                $testpaper[3]=$this->DealData($yitikus[3]);
+                $testpaper[4]=$this->DealData($yitikus[4]);
+                    
+                $testpaper[5]=$this->DealData($zhongtikus[0]);
+                $testpaper[6]=$this->DealData($zhongtikus[1]);
+                $testpaper[7]=$this->DealData($zhongtikus[2]);
+                $testpaper[8]=$this->DealData($zhongtikus[3]);
+                $testpaper[9]=$this->DealData($zhongtikus[4]);
     
-                $testpaper[5]=$ztk[0];
-                $testpaper[6]=$ztk[1];
-                $testpaper[7]=$ztk[2];
-                $testpaper[8]=$ztk[3];
-                $testpaper[9]=$ztk[4];
-    
-                $testpaper[10]=$ntk[0];
-                $testpaper[11]=$ntk[1];
-                $testpaper[12]=$ntk[2];
-                $testpaper[13]=$ntk[3];
-                $testpaper[14]=$ntk[4];
+                $testpaper[10]=$this->DealData($nantikus[0]);
+                $testpaper[11]=$this->DealData($nantikus[1]);
+                $testpaper[12]=$this->DealData($nantikus[2]);
+                $testpaper[13]=$this->DealData($nantikus[3]);
+                $testpaper[14]=$this->DealData($nantikus[4]);
 
                 return ['status' => 'success','message' => '获取题目成功','data'=>$testpaper];
-            }catch(Exception $e){
+            } catch (Exception $e) {
                 return ['status' => 'fail','message' => '缺少题目!'];
             }
-            
         }
     }
-      
+    //将数据库赋值给对象
+    private function DealData($obj)
+    {
+        $resobj["type"]=$obj["showtype"];
+        $resobj["id"]=$obj["id"];
+        $resobj["question"]=$obj["title"];
+        $resobj["pic"]=$obj["imgpath"]==null?"":$obj["imgpath"];
+        $resobj["answers"][0]=$obj["optionA"];
+        $resobj["answers"][1]=$obj["optionB"];
+        $resobj["answers"][2]=$obj["optionC"];
+        $resobj["answers"][3]=$obj["optionD"];
+        $resobj["answers"][4]=$obj["optionE"];
+        $resobj["answers"][5]=$obj["optionF"];
+        $resobj["correct"]=$obj["answer"]-1;
+
+        return $resobj;
+    }
+
     //获取项目的详情
     public function actionProdetail()
     {
         //最新的赛事
-        $magagame = Magagame::find()->orderBy('update_at desc')->where(['status'=>1])->one();
+        $magagame = Megagame::find()->orderBy('update_at desc')->where(['status'=>1])->one();
           
                
         if ($magagame==null) {

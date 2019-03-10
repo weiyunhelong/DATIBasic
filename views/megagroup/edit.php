@@ -41,7 +41,7 @@ use app\models\Category;
       <div class="form-group field-testpaper-tid" style='display:flex;'>
           <label class="control-label" style='width:80px;text-align: center;line-height:34px;'>知识点:</label>
           <div class="zTreeDemoBackground ztree">
-	      	<ul id="treeDemo" class="ztree"></ul>
+	      	  <ul id="treeDemo" class="ztree"></ul>
           </div>
           <div class="help-block"></div>
       </div>         
@@ -75,11 +75,18 @@ use app\models\Category;
         $("#tid").val(res.data.tid);  
         $("#mselect").html(res.phtml);  
         
-        
-        var setting = {
+        //初始化zTree数据
+        InitZtree(res.data.knownids);
+      } 
+    })  
+  }
+
+  //初始化zTree数据
+  function InitZtree(knownids){
+    var setting = {
           async: {
           enable: true,
-          url:"/megagroup/knowledge?ids="+res.data.knownids, 
+          url:"/megagroup/knowledge?ids="+knownids, 
           type: "get"
         },
         check: {
@@ -99,10 +106,8 @@ use app\models\Category;
           $("#expandAllBtn").bind("click", expandAll);
           $("#asyncAllBtn").bind("click", asyncAll);
           $("#resetBtn").bind("click", reset);
+       }
 
-       },
-     })  
-  }
 
   //保存数据
   function saveopt(){

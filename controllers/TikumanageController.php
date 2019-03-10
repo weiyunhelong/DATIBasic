@@ -70,9 +70,9 @@ class TikumanageController extends Controller
         $cid= Yii::$app->request->get('cid');
         $cid=(int)$cid;
         $query= Tiku::find()->where([]);
-        if($cid!=0){
-           $query=$query->andFilterWhere(['category'=>$cid]); 
-        } 
+        if ($cid!=0) {
+            $query=$query->andFilterWhere(['categoryid'=>$cid]);
+        }
         $provider = new ActiveDataProvider([
             'query' => $query,
             'sort' => ['defaultOrder' => ['create_at' => 'DESC']],
@@ -104,12 +104,12 @@ class TikumanageController extends Controller
         //通过id得到题型
         $models=Category::find()->where([])->all();
         $html='<option value="0">请选择学科</option>';
-        foreach($models as $K=>$v){
-           if($v->id==$cid) {
-             $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
-           }else{   
-             $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
-           }
+        foreach ($models as $K=>$v) {
+            if ($v->id==$cid) {
+                $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
+            } else {
+                $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+            }
         }
         return ['status'=>'success', 'data'=>$html];
     }
@@ -166,6 +166,101 @@ class TikumanageController extends Controller
             }
         }
         return ['status'=>'success', 'message'=>'保存成功'];
+    }
+    
+
+    //编辑单选题目
+    public function actionDanxuan()
+    {
+        $this->layout='@app/views/layouts/layoutpage.php';
+        $id= Yii::$app->request->get('id');
+        $model = Tiku::findOne($id);
+        return $this->render('danxuan', [
+            'model' => $model
+         ]);
+    }
+
+    //编辑判断题目
+    public function actionPanduan()
+    {
+        $this->layout='@app/views/layouts/layoutpage.php';
+        $id= Yii::$app->request->get('id');
+        $model = Tiku::findOne($id);
+        return $this->render('panduan', [
+            'model' => $model
+         ]);
+    }
+
+    //根据ID获取到基本信息
+    public function actionInfo()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+
+        $id= Yii::$app->request->get('id');
+        $id=(int)$id;
+
+        //通过id得到题型
+        $model=Tiku::find()->where(['id'=>$id])->one();
+        if (!empty($model)) {
+            return ['status'=>'success', 'data'=>$model];
+        } else {
+            $nmodel=new Tiku();
+            return ['status'=>'success', 'data'=>$nmodel];
+        }
+    }
+
+    //获取所有的知识点集合
+    public function actionGetks()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+    
+        $id= Yii::$app->request->get('cid');
+        $cid=Tiku::find()->where(['id'=>$id])->one()->categoryid;
+        $klist=Knownset::find()->where([])->all();
+        $html='';
+        foreach ($klist as $k=>$v) {
+            if ($v->id==$cid) {
+                $html=$html.'<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
+            } else {
+                $html=$html.'<option value="'.$v->id.'">'.$v->name.'</option>';
+            }
+        }
+        return ['status'=>'success', 'data'=>$html];
+    }
+    
+    //获取已选中知识点
+    public function actionKnownledge()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+ 
+        $id= Yii::$app->request->get('id');
+        $tikuobj=Tiku::find()->where(['id'=>$id])->one();
+        $knownids=explode(",",$tikuobj->knownids);
+        //return $knownids;
+        //循环
+        $list=Knowledge::find()->where(['knownsetid'=>$tikuobj->knowsetid])->all();
+        
+        $html="";
+        $vhtml="";
+        foreach($list as $k=>$v){
+         
+            if(in_array($v->id,$knownids)){
+               $html=$html ."<div class='kchilditemv'><input name='kchilditem' type='checkbox' class='kchilditem' data-id='".$v->id."' data-name='".$v->name."' onchange='chkknownset()' checked/>".$v->name."</div>";
+               $vhtml=$vhtml."<div class='chkknownv'>".$v->name."</div>";
+            }else{
+               $html=$html ."<div class='kchilditemv'><input name='kchilditem' type='checkbox' class='kchilditem' data-id='".$v->id."' data-name='".$v->name."' onchange='chkknownset()' />".$v->name."</div>";
+            } 
+       }
+        return ['status'=>'success', 'data'=>$html,'vdata'=>$vhtml];
     }
 
     /**
