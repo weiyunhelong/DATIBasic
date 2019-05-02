@@ -69,9 +69,20 @@ class TikumanageController extends Controller
         $this->layout='@app/views/layouts/newlayout.php';
         $cid= Yii::$app->request->get('cid');
         $cid=(int)$cid;
+        $kid= Yii::$app->request->get('kid');
+        $kid=(int)$kid;
+        $lid= Yii::$app->request->get('lid');
+        $lid=(int)$lid;
+
         $query= Tiku::find()->where([]);
         if ($cid!=0) {
             $query=$query->andFilterWhere(['categoryid'=>$cid]);
+        }
+        if ($kid!=0) {
+            $query=$query->andFilterWhere(['knowsetid'=>$cid]);
+        }
+        if ($lid!=0) {
+            $query=$query->andFilterWhere(['like','knownids',$cid.',',false]);
         }
         $provider = new ActiveDataProvider([
             'query' => $query,
@@ -91,7 +102,7 @@ class TikumanageController extends Controller
      * @return string
      */
 
-    //获取所有的有分组的大赛
+    //获取所有的学科
     public function actionCategory()
     {
         // 返回数据格式为 json
@@ -101,11 +112,63 @@ class TikumanageController extends Controller
         $cid= Yii::$app->request->get('cid');
         $cid=(int)$cid;
 
-        //通过id得到题型
+        //通过id得到学科
         $models=Category::find()->where([])->all();
         $html='<option value="0">请选择学科</option>';
         foreach ($models as $K=>$v) {
             if ($v->id==$cid) {
+                $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
+            } else {
+                $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+            }
+        }
+        return ['status'=>'success', 'data'=>$html];
+    }
+
+    //获取所有的集合
+    public function actionKnownsetselect()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+        $cid= Yii::$app->request->get('cid');
+        $cid=(int)$cid;
+        $kid= Yii::$app->request->get('kid');
+        $kid=(int)$kid;
+
+        //通过id得到学科
+        $models=Knownset::find()->where(['categoryid'=>$cid])->all();
+        $html='<option value="0">请选择集合</option>';
+        foreach ($models as $K=>$v) {
+            if ($v->id==$kid) {
+                $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
+            } else {
+                $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';
+            }
+        }
+        return ['status'=>'success', 'data'=>$html];
+    }
+
+    //获取所有的知识点
+    public function actionKnowledgeselect()
+    {
+        // 返回数据格式为 json
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        // 关闭 csrf 验证
+        $this->enableCsrfValidation = false;
+        $cid= Yii::$app->request->get('cid');
+        $cid=(int)$cid;
+        $kid= Yii::$app->request->get('kid');
+        $kid=(int)$kid;
+        $lid= Yii::$app->request->get('lid');
+        $lid=(int)$lid;
+
+        //通过id得到知识点
+        $models=Knowledge::find()->where(['categoryid'=>$cid,'knownsetid'=>$kid])->all();
+        $html='<option value="0">请选择知识点</option>';
+        foreach ($models as $K=>$v) {
+            if ($v->id==$lid) {
                 $html= $html. '<option value="'.$v->id.'" selected="selected">'.$v->name.'</option>';
             } else {
                 $html= $html. '<option value="'.$v->id.'">'.$v->name.'</option>';

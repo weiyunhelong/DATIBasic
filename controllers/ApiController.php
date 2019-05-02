@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use abei2017\wx\Application;
 use app\models\Category;
+use app\models\Chance;
 use app\models\Knowledge;
 use app\models\Knowset;
 use app\models\Megagame;
@@ -115,7 +116,30 @@ class ApiController extends \yii\web\Controller
             }
         }
     }
-
+    //更新用户答题机会
+    private function UpdateChance($openid, $topenid, $matchid)
+    {
+        $model=Chance::findOne(['openid' => $openid,'topenid' => $topenid,'matchid'=>$matchid]);
+        if (empty($model)) {
+            $mmodel=new Chance();
+            $mmodel->openid=$openid;
+            $mmodel->topenid=$topenid;
+            $mmodel->matchid=$matchid;
+            $mmodel->number=5;
+            if ($mmodel->save()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            $model->number=$model->number-1;
+            if ($model->save()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
     //1-1 保存微信用户信息
     public function actionSavewxuser()
     {
@@ -152,6 +176,9 @@ class ApiController extends \yii\web\Controller
             $mmodel->chancenum=5;
             $mmodel->create_at= time();
             $mmodel->update_at= time();
+
+            $this->UpdateChance($openid, $topenid, $tid);
+
             if ($mmodel->save()) {
                 return ['status' => 'success',  'message' => "微信用户创建成功"];
             } else {
@@ -168,29 +195,14 @@ class ApiController extends \yii\web\Controller
             $model->province=$province;
             $model->city=$city;
             $model->update_at= time();
-    
+
+            $this->UpdateChance($openid, $topenid, $tid);
+
             if ($model->save()) {
                 return ['status' => 'success',  'message' => "微信用户更新成功"];
             } else {
                 return $model->getErrors();
             }
-        }
-    }
-
-    //用户的答题次数减少
-    public function actionUsechance()
-    {
-        //答题记录
-        $openid = Yii::$app->request->post('openid');
-
-        //用户的答题次数减少1
-        $model= WechatUser::findOne(['openid' => $openid]);
-        $model->chancenum=$model->chancenum-1;
-
-        if ($model->save()) {
-            return ['status' => 'success',  'message' => "答题次数减少"];
-        } else {
-            return $model->getErrors();
         }
     }
 
@@ -249,10 +261,9 @@ class ApiController extends \yii\web\Controller
         $topenid = Yii::$app->request->post('topenid');
         $tid = Yii::$app->request->post('matchid');
 
-        //新增用户答题记录
-        $maxval=Record::find()->orderBy('update_at DESC')->select('rightnum')->where(['=', 'topenid', $topenid], ['=','tid',$tid])->asArray()->all();//一个二维数组c
-        $level=$maxval[0]['rightnum'];
         
+        $maxval=Record::find()->select('max(rightnum) as maxrightnum')->where(['topenid'=>$topenid,'tid'=>$tid])->asArray()->all();//一个二维数组c
+        $level=$maxval[0]['maxrightnum'];
         if ($level==null) {
             return ['status' => 'fail','data' => false];
         } elseif ($level<12) {
@@ -266,32 +277,32 @@ class ApiController extends \yii\web\Controller
     public function actionTxchance()
     {
         //推行官的openid
-        $topenid = Yii::$app->request->post('openid');
-      
-        //新增用户答题记录
-        $wxuser=WechatUser::find()->where(['=', 'topenid', $topenid])->one();
-       
-        if ($wxuser==null) {
+        $topenid = Yii::$app->request->post('topenid');
+        $matchid = Yii::$app->request->post('matchid');
+        //用户答题次数
+        $chanceobj=Chance::find()->where(['topenid' => $topenid,'matchid'=>$matchid])->one();
+         
+        if ($chanceobj==null) {
             return ['status' => 'success',  'data' => 5];
         } else {
-            return ['status' => 'success',  'data' =>  $wxuser->chancenum];
+            return ['status' => 'success',  'data' =>  $chanceobj->number];
         }
     }
     
     //获取用户的答题次数
     public function actionGetchance()
     {
-        //答题记录
+        //openid
         $openid = Yii::$app->request->post('openid');
-          
-        //新增用户答题记录
-        $wxuser=WechatUser::find()->where(['=', 'openid', $openid])->one();//一个二维数组c
+        $topenid = Yii::$app->request->post('topenid');
+        $matchid = Yii::$app->request->post('matchid');
+        //用户答题次数
+        $chanceobj=Chance::find()->where(['openid'=> $openid,'topenid' => $topenid,'matchid'=>$matchid])->one();
        
-        
-        if ($wxuser==null) {
-            return ['status' => 'success','data' => 5];
+        if ($chanceobj==null) {
+            return ['status' => 'success',  'data' => 5];
         } else {
-            return ['status' => 'success','data' => $wxuser->chancenum];
+            return ['status' => 'success',  'data' =>  $chanceobj->number];
         }
     }
   
@@ -403,141 +414,6 @@ class ApiController extends \yii\web\Controller
         }
     }
 
-    // 小程序码
-    public function actionWxcode()
-    {
-        $conf = Yii::$app->params['wx']['mini'];
-        $app = new Application(['conf' => $conf]);
-        $qrcode = $app->driver("mini.qrcode");
-        $path = "/pages/index/index";
-        $scene = "123456";
-        $qrcode->unLimit($scene, $page, $extra = []);
-    }
-
-    // 消息模板
-    public function actionNewsmuban()
-    {
-        $conf = Yii::$app->params['wx']['mini'];
-        $app = new Application(['conf' => $conf]);
-        $template = $app->driver("mini.template");
-        $templateId="";//模板ID
-        $formId=Yii::$app->request->post('formId'); // formId的值
-        $toUser=Yii::$app->request->post('openid'); // openid的值
-        $data=[];//模板内容，不填则下发空模板
-        $extra = [];//其他参数，都放到$extra数组中，比如page、color、emphasis_keyword
-        $template->send($toUser, $templateId, $formId, $data, $extra);
-        /*
-        $toUser 接收者（用户）的 openid
-        $templateId 所需下发的模板消息的id
-        $formId 表单提交场景下，为 submit 事件带上的 formId；支付场景下，为本次支付的 prepay_id
-        $data 模板内容，不填则下发空模板
-        $extra 其他参数，都放到$extra数组中，比如page、color、emphasis_keyword
-         */
-        return ['status' => 'success', 'message' => '发送成功'];
-    }
-    
-    //微信小程序支付功能
-    public function actionPayfor()
-    {
-        $conf = Yii::$app->params['wx']['mini'];
-        $app = new Application(['conf' => $conf]);
-        $payment = $app->driver("mini.pay");
-        $money= Yii::$app->request->post('money'); // money的值
-        $openid= Yii::$app->request->post('openid'); // openid的值
-        $out_trade_no=time() . mt_rand(1000, 1000000);//订单号
-        
-        $param = array(
-            'appid' =>Yii::$app->params['appid'],//小程序id
-            'body' =>"报名", //商品信息
-            'mch_id'=> Yii::$app->params['mch_id'],//商户id
-            'notify_url'=>'notice/index.php', //回调通知地址
-            'nonce_str'=> $this->createNoncestr(),
-            'out_trade_no'=>$out_trade_no,//商户订单编号
-            'total_fee'=>$money*100, //总金额
-            'openid'=>$openid,//用户openid
-            'trade_type'=>'JSAPI',//交易类型
-            'spbill_create_ip'=>"139.129.230.192",//终端ip
-            );
-
-        //通过签名算法计算得出的签名值，详见签名生成算法
-        $result = $this->createJsBizPackage($openid, $money, $out_trade_no, '报名费', "notice/index.php", time());
-        //return $package;
-        //生成小程序签名
-        $config="appId=".Yii::$app->params['appid']."&nonceStr=".$this->createNoncestr()."&package=prepay_id=".$result['prepay_id']."&signType=MD5&timeStamp=".time()."&key=".Yii::$app->params['key'];
-        //return  $config;
-        $String = md5($config);
-        //字符转为大写
-        $sign = strtoupper($String);
-        //$package=$result['package'];
-        $package=$result;
-        return ['status'=>'success','nonceStr'=>$this->createNoncestr(),'package'=>$package,'sign'=>$sign];
-    }
-
-
-    /*
-* 对要发送到微信统一下单接口的数据进行签名
-*/
-    protected function getNewSign($Obj)
-    {
-        foreach ($Obj as $k => $v) {
-            $param[$k] = $v;
-        }
-        //签名步骤一：按字典序排序参数
-        ksort($param);
-        $String = $this->formatBizQueryParaMap($param, false);
-        //签名步骤二：在string后加入KEY
-        $String = $String."&key=". Yii::$app->params['key'];
-        //签名步骤三：MD5加密
-        $String = md5($String);
-        //签名步骤四：所有字符转为大写
-        $result_ = strtoupper($String);
-        return $result_;
-    }
-    // 小程序支付
-    public function actionWxpay()
-    {
-        $conf = Yii::$app->params['wx']['mini'];
-        $app = new Application(['conf' => $conf]);
-        $payment = $app->driver("mini.pay");
-        $money= Yii::$app->request->post('money'); // money的值
-        $openid= Yii::$app->request->post('openid'); // openid的值
-        $out_trade_no=time() . mt_rand(1000, 1000000);//订单号
-        $attributes = [
-            'body' => "购买",
-            'out_trade_no' => $out_trade_no,
-            'total_fee' => $money*100,
-            'notify_url' => Yii::$app->urlManager->createAbsoluteUrl(['/order/notify']),
-            'openid' => $openid,
-        ];
-        
-
-        $jsApi = $payment->jsApi($attributes);
-        return $jsApi;
-        if ($jsApi->return_code == 'SUCCESS' && $jsApi->result_code == 'SUCCESS') {
-            $prepayId = $jsApi->prepay_id;
-        }
-        $result = $payment->configForPayment($prepayId);
-        /*
-        $result是一个数组，里面包含appId、timeStamp、nonceStr、package、signType、paySign。
-         */
-        return $result;
-    }
-
-    // OPNEID
-    public function actionGetopenid()
-    {
-        $conf = Yii::$app->params['wx']['mini'];
-        $app = new Application(['conf' => $conf]);
-        $user = $app->driver("mini.user");
-        $code = Yii::$app->request->post('code'); // code的值
-        $result = $user->codeToSession($code);
-        /*
-        $result是一个数组，里面包含appId、timeStamp、nonceStr、package、signType、paySign。
-         */
-        return $result;
-    }
-    // ******************************** 处理方法 *****************************
-
     // 微信授权获取 openid
     public function wechatAuth($code)
     {
@@ -558,131 +434,5 @@ class ApiController extends \yii\web\Controller
         }
 
         return $data;
-    }
-    //微信支付
-    public function createJsBizPackage($openid, $totalFee, $outTradeNo, $orderName, $notifyUrl, $timestamp)
-    {
-        $config = array(
-            'mch_id' => Yii::$app->params['mch_id'],
-            'appid' =>  Yii::$app->params['appid'],
-            'key' => Yii::$app->params['key'],
-        );
-        $unified = array(
-            'appid' => $config['appid'],
-            'attach' => '支付',
-            'body' => $orderName,
-            'mch_id' => $config['mch_id'],
-            'nonce_str' => self::createNonceStr(),
-            'notify_url' => $notifyUrl,
-            'openid' => $openid,
-            'out_trade_no' => $outTradeNo,
-            'spbill_create_ip' => '127.0.0.1',
-            'total_fee' => intval($totalFee * 100),
-            'trade_type' => 'JSAPI',
-        );
-        $unified['sign'] = self::getSign($unified, $config['key']);
-        $responseXml = self::curlPost('https://api.mch.weixin.qq.com/pay/unifiedorder', self::arrayToXml($unified));
-        $unifiedOrder = simplexml_load_string($responseXml, 'SimpleXMLElement', LIBXML_NOCDATA);
-        if ($unifiedOrder === false) {
-            die('parse xml error');
-        }
-        if ($unifiedOrder->return_code != 'SUCCESS') {
-            die($unifiedOrder->return_msg);
-        }
-        if ($unifiedOrder->result_code != 'SUCCESS') {
-            die($unifiedOrder->err_code);
-        }
-        $arr = array(
-            "appId" => $config['appid'],
-            "timeStamp" => $timestamp,
-            "nonceStr" => self::createNonceStr(),
-            "package" => "prepay_id=" . $unifiedOrder->prepay_id,
-            "signType" => 'MD5',
-        );
-        $arr['paySign'] = self::getSign($arr, $config['key']);
-        return $arr;
-    }
-    public static function curlGet($url = '', $options = array())
-    {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        if (!empty($options)) {
-            curl_setopt_array($ch, $options);
-        }
-        //https请求 不验证证书和host
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        $data = curl_exec($ch);
-        curl_close($ch);
-        return $data;
-    }
-    public static function curlPost($url = '', $postData = '', $options = array())
-    {
-        if (is_array($postData)) {
-            $postData = http_build_query($postData);
-        }
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30); //设置cURL允许执行的最长秒数
-        if (!empty($options)) {
-            curl_setopt_array($ch, $options);
-        }
-        //https请求 不验证证书和host
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        $data = curl_exec($ch);
-        curl_close($ch);
-        return $data;
-    }
-    public static function createNonceStr($length = 16)
-    {
-        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $str = '';
-        for ($i = 0; $i<$length; $i++) {
-            $str .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
-        }
-        return $str;
-    }
-    public static function arrayToXml($arr)
-    {
-        $xml = "<xml>";
-        foreach ($arr as $key => $val) {
-            if (is_numeric($val)) {
-                $xml .= "<" . $key . ">" . $val . "</" . $key . ">";
-            } else {
-                $xml .= "<" . $key . "><![CDATA[" . $val . "]]></" . $key . ">";
-            }
-        }
-        $xml .= "</xml>";
-        return $xml;
-    }
-    public static function getSign($params, $key)
-    {
-        ksort($params, SORT_STRING);
-        $unSignParaString = self::formatQueryParaMap($params, false);
-        $signStr = strtoupper(md5($unSignParaString . "&key=" . $key));
-        return $signStr;
-    }
-    protected static function formatQueryParaMap($paraMap, $urlEncode = false)
-    {
-        $buff = "";
-        ksort($paraMap);
-        foreach ($paraMap as $k => $v) {
-            if (null != $v && "null" != $v) {
-                if ($urlEncode) {
-                    $v = urlencode($v);
-                }
-                $buff .= $k . "=" . $v . "&";
-            }
-        }
-        $reqPar = '';
-        if (strlen($buff)>0) {
-            $reqPar = substr($buff, 0, strlen($buff) - 1);
-        }
-        return $reqPar;
     }
 }

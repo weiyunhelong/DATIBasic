@@ -122,7 +122,7 @@ class TikuController extends Controller
             $ztree[$key]['id']=$val->id;
             $ztree[$key]['pId']=0;
             $ztree[$key]['name']=$val->name;
-            $ztree[$key]['@checked']=$key==0?true:false;
+            $ztree[$key]['@checked']=false;
             $ztree[$key]['isParent']=true;
             $ztree[$key]['open']=$key==0?true:false;
          
