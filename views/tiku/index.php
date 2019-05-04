@@ -18,7 +18,28 @@ $(function(){
     //初始化学科下拉列表
     InitCategorySelect();
 })
-
+//学科的改变
+function categorychange(){
+  var setting = {
+          async: {
+          enable: true,
+          url:"/tiku/knownset?cid="+$('#cselect').val(), 
+          type: "get"
+        },
+        callback: {
+          onClick:ztreeOnClick,
+          beforeAsync: beforeAsync,
+          onAsyncSuccess: onAsyncSuccess,
+          onAsyncError: onAsyncError
+         }
+        };   
+        //初始化树形结构
+        $.fn.zTree.init($("#treeDemo"), setting);
+          $("#expandAllBtn").bind("click", expandAll);
+          $("#asyncAllBtn").bind("click", asyncAll);
+          $("#resetBtn").bind("click", reset);
+       
+}
 //初始化学科下拉列表
 function InitCategorySelect(){
     $.ajax({
@@ -198,8 +219,7 @@ function Searchopt(){
     //默认点击第一个子节点
     var roletree = $.fn.zTree.getZTreeObj("treeDemo");
     var node = roletree.getNodes()[0];
-    console.log("第一个节点:");
-    console.log(node);
+    roletree.selectNode(node.children[0]);
     $("#kid").val(node.id);
     $("#ckid").val(node.children[0].id);
     var path="/tiku/list?cid="+$('#cselect').val()+'&kid='+node.id+'&ckid='+node.children[0].id;
@@ -318,7 +338,7 @@ function Searchopt(){
   </div>
   <div class="row placeholders">
    <div class="col-sm-3 ztreev">
-     <select name="" id="cselect" class='form-control'></select>
+     <select name="" id="cselect" class='form-control' onchange="categorychange()"></select>
      <div class="zTreeDemoBackground ztree">
 	  	<ul id="treeDemo" class="ztree"></ul>
    	</div>

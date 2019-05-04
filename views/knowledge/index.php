@@ -197,9 +197,12 @@ function Searchopt(){
                   [
                     'class' => 'yii\grid\CheckboxColumn',
                   ],
+                  
                   [
-                    'label'=>'ID',
-                    'attribute'=>'id',
+                    'label'=>'序号',
+                    'value' => function ($model, $key, $index, $grid) { 
+                      return $index+1; 
+                    }
                   ],                  
                   [
                     'label'=>'学科名称',

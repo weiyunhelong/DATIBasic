@@ -13,6 +13,10 @@ $(function(){
 
     //获取学科的下拉列表
     InitCategory();
+    //获取集合的下拉列表
+    InitKnowset();
+    //获取知识点的下拉列表
+    InitKnowledge();
 })
 
 //获取学科的下拉列表
@@ -35,10 +39,110 @@ function  InitCategory(){
     }
   })
 }
+//获取集合的下拉列表
+function InitKnowset(){
+  var params=window.location.search;
+  var cnames=params.split('&')[0];
+  var cid=cnames.split('=')[1];
+  var knames=params.split('&')[1];
+  var kid=knames.split('=')[1];
+
+   $.ajax({
+    type:'get',
+    url:'/tikumanage/knownsetselect',
+    data:{
+      cid:cid,
+      kid:kid
+    },
+    success:function(res){
+      console.log("集合列表:");
+      console.log(res);
+      
+      $("#jselect").html(res.data);
+
+      InitKnowledge();
+    }
+  })
+}
+
+//获取知识点的下拉列表
+function InitKnowledge(){
+  var params=window.location.search;
+  var cnames=params.split('&')[0];
+  var cid=cnames.split('=')[1];
+  var knames=params.split('&')[1];
+  var kid=knames.split('=')[1];
+  var lnames=params.split('&')[2];
+  var lid=lnames.split('=')[1];
+  
+   $.ajax({
+    type:'get',
+    url:'/tikumanage/knowledgeselect',
+    data:{
+      cid:cid,
+      kid:kid,
+      lid:lid
+    },
+    success:function(res){
+      console.log("知识点列表:");
+      console.log(res);
+      
+      $("#zselect").html(res.data);
+    }
+  })
+}
+//学科改变
+function categorychange(){
+
+  var cid=$("#cselect").val();
+  var kid=0;
+
+   $.ajax({
+    type:'get',
+    url:'/tikumanage/knownsetselect',
+    data:{
+      cid:cid,
+      kid:kid
+    },
+    success:function(res){
+      console.log("集合列表:");
+      console.log(res);
+      
+      $("#jselect").html(res.data);
+
+      jihechange();
+    }
+  })
+}
+//集合改变
+function jihechange(){
+
+  var cid=$("#cselect").val();
+  var kid=$("#jselect").val();
+  var lid=0;
+  
+   $.ajax({
+    type:'get',
+    url:'/tikumanage/knowledgeselect',
+    data:{
+      cid:cid,
+      kid:kid,
+      lid:lid
+    },
+    success:function(res){
+      console.log("知识点列表:");
+      console.log(res);
+      
+      $("#zselect").html(res.data);
+    }
+  })
+}
 //搜索数据
 function Searchopt(){
   var cid=$("#cselect").val();
-  window.document.location.href="/tikumanage/index?cid="+cid;
+  var kid=$("#jselect").val();
+  var lid=$("#zselect").val();
+  window.document.location.href="/tikumanage/index?cid="+cid+"&kid="+kid+"&lid="+lid;
 }
 
 //批量删除
@@ -125,9 +229,9 @@ $.ajax({
 }
 </script>
 
-<style>
+<style type="text/css">
 .topleftv{
-  width: 60%;
+  width: 100%;
   height: 50px;
   text-align: left;
   display: flex;
@@ -150,7 +254,9 @@ $.ajax({
   <h1 class="page-header">习题审核</h1>
   <div class="topoptv">
     <div class='topleftv'>
-      <select id="cselect" class="form-control" style='width:150px;'></select>
+      <select id="cselect" class="form-control" style='width:150px;' onchange="categorychange()"></select>
+      <select id="jselect" class="form-control" style='width:150px;margin-left:10px;' onchange="jihechange()"></select>
+      <select id="zselect" class="form-control" style='width:150px;margin-left:10px;'></select>
       <button id="btn_search" type="button" class="searchbtn" style='height:34px;margin-left:10px;' onclick='Searchopt()'>查询</button>
    </div>
     <div class='toprightv'>
@@ -166,8 +272,10 @@ $.ajax({
                     'class' => 'yii\grid\CheckboxColumn',
                   ],
                   [
-                    'label'=>'ID',
-                    'attribute'=>'id',
+                    'label'=>'序号',
+                    'value' => function ($model, $key, $index, $grid) { 
+                      return $index+1; 
+                    }
                   ],
                   [
                     'label'=>'题目',

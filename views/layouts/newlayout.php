@@ -133,7 +133,7 @@ use yii\widgets\Breadcrumbs;
           <li id="fivemenu"><a href="/knownset/index"     class='menu'>知识点集合</a></li>
           <li id="sixmenu"><a href="/knowledge/index?categoryid=0&knownsetid=0"    class='menu'>知识点管理</a></li>
           <li id="sevenmenu"><a href="/tiku/index" class='menu'>习题管理</a></li>
-          <li id="eightmenu"><a href="/tikumanage/index?cid=0"       class='menu'>习题审核</a></li>
+          <li id="eightmenu"><a href="/tikumanage/index?cid=0&kid=0&lid=0"       class='menu'>习题审核</a></li>
           <li id="ninemenu"><a href="/megagame/index"    class='menu'>赛事管理</a></li>
           <li id="teenmenu"><a href="/megagroup/index?mid=0"    class='menu'>赛事分组</a></li>
         </ul>

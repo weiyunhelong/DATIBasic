@@ -122,8 +122,6 @@ function Searchopt(){
         <button id="btn_search" type="button" class="searchbtn" style='height:34px;margin-left:10px;' onclick='Searchopt()'>查询</button>
     </div>
     <div class='toprightv'>
-     <button type="button" class="btn btn-success" onclick='Add()'>新建</button>
-     <button type="button" class="btn btn-warning" onclick='Delete()'>批量删除</button>
     </div>   
   </div>
   <div class="row placeholders">
@@ -135,8 +133,10 @@ function Searchopt(){
                     'class' => 'yii\grid\CheckboxColumn',
                   ],
                   [
-                    'label'=>'ID',
-                    'attribute'=>'id',
+                    'label'=>'序号',
+                    'value' => function ($model, $key, $index, $grid) { 
+                      return $index+1; 
+                    }
                   ],
                   [
                     'label'=>'名称',
@@ -148,20 +148,7 @@ function Searchopt(){
                     'value'=>function ($m) {
                         return date("Y-m-d H:i:s", $m->create_at);
                     }
-                  ],[
-                    'class' => 'yii\grid\ActionColumn',
-                    'header' => '操作',
-                    'template' => ' {update} {delete}',//只需要展示删除{update}
-                    'headerOptions' => ['width' => '240'],
-                    'buttons' => [
-                        "update"=>function ($url, $model, $key) {//print_r($key);exit;
-                            return Html::a('修改', 'javascript:;', ['onclick'=>'editopt('.$model->id.',"'.$model->name.'")']);
-                        },
-                        'delete' => function ($url, $model, $key) {
-                            return Html::a('删除', 'javascript:;', ['onclick'=>'deleteopt('.$model->id.')']);
-                        },
-                    ],
-                ],
+                  ]
             ],
        ]) ?>
   </div>

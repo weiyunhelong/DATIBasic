@@ -61,12 +61,14 @@ function Back(){
             'dataProvider' => $provider,
             'id' => 'grid',
             'columns' => [
-                [
+                  [
                     'class' => 'yii\grid\CheckboxColumn',
                   ],
                   [
-                    'label'=>'ID',
-                    'attribute'=>'id',
+                    'label'=>'序号',
+                    'value' => function ($model, $key, $index, $grid) { 
+                      return $index+1; 
+                    }
                   ],
                   [
                     'label'=>'题目',

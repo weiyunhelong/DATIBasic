@@ -125,7 +125,7 @@ class ApiController extends \yii\web\Controller
             $mmodel->openid=$openid;
             $mmodel->topenid=$topenid;
             $mmodel->matchid=$matchid;
-            $mmodel->number=5;
+            $mmodel->number=4;
             if ($mmodel->save()) {
                 return true;
             } else {
