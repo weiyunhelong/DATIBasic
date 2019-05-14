@@ -123,7 +123,7 @@ class TikuController extends Controller
             $ztree[$key]['pId']=0;
             $ztree[$key]['name']=$val->name;
             $ztree[$key]['@checked']=false;
-            $ztree[$key]['isParent']=true;
+            $ztree[$key]['isParent']=false;
             $ztree[$key]['open']=$key==0?true:false;
          
             //通过知识点集合id得到知识点

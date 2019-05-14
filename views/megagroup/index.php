@@ -175,6 +175,10 @@ function Searchopt(){
                     'attribute'=>'tid',
                   ],
                   [
+                    'label'=>'大赛ID',
+                    'attribute'=>'mid',
+                  ],
+                  [
                     'label'=>'创建时间',
                     'attribute' => 'create_at',
                     'value'=>function ($m) {

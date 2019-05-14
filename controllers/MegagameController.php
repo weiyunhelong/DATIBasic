@@ -210,16 +210,8 @@ class MegagameController extends Controller
         $status= Yii::$app->request->post('status');
         $status=(int)$status;
         $model=Megagame::find()->where(['id'=>$id])->one();
-        //return $model;
-        //更新开始
-        $mlist=Megagame::find()->where([])->all();
-        foreach($mlist as $k=>$v){
-            if($v->status==1){
-                $v->status=0;
-                $v->save();
-            }
-        }
-        $model->status=1;
+       
+        $model->status=$status;
         if ($model->save()) {
             return ['status' => 'success', 'message' =>'保存数据成功'];
         }

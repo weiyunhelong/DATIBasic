@@ -265,11 +265,9 @@ class ApiController extends \yii\web\Controller
         $maxval=Record::find()->select('max(rightnum) as maxrightnum')->where(['topenid'=>$topenid,'tid'=>$tid])->asArray()->all();//一个二维数组c
         $level=$maxval[0]['maxrightnum'];
         if ($level==null) {
-            return ['status' => 'fail','data' => false];
-        } elseif ($level<12) {
-            return ['status' => 'fail','data' => false];
-        } else {
-            return ['status' => 'success','data' => true];
+            return ['status' => 'fail','data' => 0];
+        } else{
+            return ['status' => 'success','data' => $level];
         }
     }
   
@@ -311,9 +309,9 @@ class ApiController extends \yii\web\Controller
     {
         //参数部分
         $groupid = Yii::$app->request->post('groupid');//分组id
-         
+        $mid = Yii::$app->request->post('mid');//大赛id
         //根据分组id获取分组
-        $managroup=Megagroup::find()->where(['tid'=>$groupid])->one();
+        $managroup=Megagroup::find()->where(['tid'=>$groupid,'mid'=>$mid])->one();
         
         if ($managroup==null) {
             return ['status' => 'fail','message' => '查询不到相关数据!'];
@@ -396,15 +394,17 @@ class ApiController extends \yii\web\Controller
         $resobj["answers"][4]=$obj["optionE"];
         $resobj["answers"][5]=$obj["optionF"];
         $resobj["correct"]=$obj["answer"]-1;
-
+        $resobj["tixing"]=$obj["tixingid"];
         return $resobj;
     }
 
     //获取项目的详情
     public function actionProdetail()
     {
+       $mid = Yii::$app->request->post('mid');//分组id
         //最新的赛事
-        $magagame = Megagame::find()->orderBy('update_at desc')->where(['status'=>1])->one();
+        $magagame = Megagame::find()->where(['status'=>1,'id'=>$mid])->one();
+        
           
                
         if ($magagame==null) {

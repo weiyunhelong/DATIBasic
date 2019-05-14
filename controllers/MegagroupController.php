@@ -158,7 +158,7 @@ class MegagroupController extends Controller
         //通过id得到
         $model=Megagroup::find()->where(['id'=>$id])->one();
         //获取分组的数据
-        $groups=Megagame::find()->where(['isyear'=>1])->all();
+        $groups=Megagame::find()->where(['isyear'=>1])->where(['<>','status', -1])->all();
         $phtml='';
 
         if (!empty($model)) {
@@ -223,7 +223,7 @@ class MegagroupController extends Controller
             $ztree[$key]['pId']=0;
             $ztree[$key]['name']=$val->name;
             $ztree[$key]['checked']=false;
-            $ztree[$key]['isParent']=true;
+            $ztree[$key]['isParent']=false;
             $ztree[$key]['open']=true;
          
             //通过知识点集合id得到知识点
